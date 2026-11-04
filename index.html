@@ -114,6 +114,33 @@
   .atras .t{ font-size:16px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .faltan{ display:inline-block; padding:3px 10px; border-radius:99px; background:#FFB020; color:#1F1300; font-size:12px; font-weight:600; }
   .estatus{ display:inline-block; padding:3px 10px; border-radius:99px; font-size:12px; font-weight:600; white-space:nowrap; }
+  /* 04NOVV1-MOVIL (#162 fases 0–1, #166): pasos del trámite, nota y Mis pendientes */
+  .pasos-lista{ padding:4px 14px 8px; }
+  .pasos-cab{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin:12px 0 4px; font-weight:600; }
+  .paso{ display:grid; grid-template-columns:24px 1fr auto; gap:8px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line-soft); }
+  .paso .ic{ width:22px; height:22px; border-radius:99px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; border:1px solid var(--line); color:var(--text-faint); }
+  .paso.hecho .ic{ background:var(--green); border-color:var(--green); color:#08111F; }
+  .paso.sig .ic{ background:var(--amber); border-color:var(--amber); color:#08111F; }
+  .paso.na .ic{ background:var(--line); color:var(--text-faint); }
+  .paso .nom{ font-size:14px; font-weight:600; }
+  .paso.hecho .nom{ color:var(--text-dim); }
+  .paso .meta{ font-size:12px; color:var(--text-faint); margin-top:2px; overflow-wrap:anywhere; }
+  .paso button{ height:36px; padding:0 12px; border-radius:10px; font-size:13px; font-weight:600; }
+  .paso button.marcar{ border:none; background:var(--cyan); color:#08111F; }
+  .paso button.desmarcar{ border:1px solid #2B4A7A; background:transparent; color:var(--text-dim); }
+  .tp-aviso{ font-size:13px; color:var(--amber); margin:4px 0 12px; white-space:pre-line; }
+  .tp-aviso.error{ color:var(--red); }
+  .hist{ white-space:pre-line; font-size:12px; color:var(--text-dim); line-height:1.45; padding:4px 0; }
+  .pend-captura{ display:flex; gap:8px; }
+  .pend-captura input{ flex:1; height:44px; border-radius:10px; border:1px solid var(--line); background:var(--surface); padding:0 12px; }
+  .pend-comp{ flex:0 0 auto; height:44px; padding:0 10px; border-radius:10px; border:1px solid #2B4A7A; background:transparent; color:var(--text-faint); font-size:12px; font-weight:700; letter-spacing:.04em; }
+  .pend-comp.on{ background:var(--amber); border-color:var(--amber); color:#08111F; }
+  .pend{ display:grid; grid-template-columns:28px 1fr auto; gap:8px; align-items:start; padding:12px 0; border-bottom:1px solid var(--line-soft); }
+  .pend input[type=checkbox]{ width:22px; height:22px; margin-top:2px; }
+  .pend.hecha .t{ text-decoration:line-through; color:var(--text-faint); }
+  .pend .tag{ display:inline-block; margin-left:6px; padding:0 6px; border-radius:99px; font-size:10px; font-weight:700; background:rgba(224,168,87,0.16); color:var(--amber); }
+  .pend .acc{ display:flex; gap:6px; }
+  .pend .acc button{ height:32px; padding:0 8px; border-radius:8px; border:1px solid #2B4A7A; background:transparent; color:var(--text-faint); font-size:12px; }
   .grande{ font-size:22px; line-height:1.1; }
   .mega{ font-size:34px; line-height:1.05; }
   .avance{ height:4px; border-radius:99px; background:var(--line); overflow:hidden; margin-top:6px; }
@@ -197,6 +224,8 @@
           <div class="sug" id="dashSug"></div>
         </div>
       </div>
+      <!-- 04NOVV1-MOVIL (#166): «MIS PENDIENTES» es un botón dentro del Dashboard (no un acceso nuevo en la barra de abajo) -->
+      <div style="padding:8px 14px 0;"><button type="button" class="btn-sec" id="dashPendBtn" style="width:100%">Mis pendientes<span id="dashPendN"></span></button></div>
       <div id="dashContenido"></div>
       <div class="sec" style="border-bottom:none; margin-top:24px; display:flex; justify-content:space-between; align-items:center;">
         <span class="k">Sesión: <span id="mUserLabel" style="color:var(--text-dim)"></span> · <span class="num" id="mVersion"></span></span>
@@ -359,6 +388,31 @@
   </div>
 </div>
 
+<!-- 04NOVV1-MOVIL (2026-11-04, a petición de César, #162 fase 1): marcar / desmarcar un paso del trámite (mismas reglas del escritorio) -->
+<div class="ov" id="ov-trm-paso">
+  <div class="atras"><button type="button" data-atras aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="t" id="tpTit">Paso</span></div>
+  <div class="ov-cuerpo">
+    <p class="k" id="tpSub" style="margin-top:0"></p>
+    <p class="tp-aviso" id="tpAviso"></p>
+    <div class="campo" id="tpFechaWrap"><label for="tpFecha">Fecha</label><input id="tpFecha" type="date"></div>
+    <label class="campo" id="tpNaWrap" style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="tpNa" style="width:22px; height:22px;"> No aplica (sin pago)</label>
+    <div class="campo"><label for="tpNota" id="tpNotaLbl">Nota (opcional)</label><textarea id="tpNota" rows="3"></textarea></div>
+    <button type="button" class="btn-prim" id="tpOk">Marcar</button>
+  </div>
+</div>
+
+<!-- 04NOVV1-MOVIL (#166 en el móvil): Mis pendientes (hoja PENDIENTES, Pendientes.gs) con el botón COMPARTIDO -->
+<div class="ov" id="ov-pendientes">
+  <div class="atras"><button type="button" data-atras aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="t">Mis pendientes</span></div>
+  <div class="ov-cuerpo">
+    <div class="pend-captura"><input id="pdTexto" placeholder="Escribe un pendiente" autocomplete="off"><button type="button" id="pdComp" class="pend-comp" aria-pressed="false" title="Marcado: lo ven César y Lucero. Sin marcar: solo tú.">COMPARTIDO</button></div>
+    <button type="button" class="btn-prim" id="pdAgregar" style="margin-top:8px">Agregar</button>
+    <p class="k" id="pdEstado"></p>
+    <div id="pdLista"></div>
+    <button type="button" class="btn-sec" id="pdLimpiar" style="margin-top:12px; width:100%">Borrar completadas</button>
+  </div>
+</div>
+
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
@@ -423,7 +477,7 @@ function nexusSesionVencida_(){
     return p;
   };
 })();
-const PANEL_VERSION = '22OCTV3-MOVIL';   // 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '04NOVV1-MOVIL';   // 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -867,6 +921,54 @@ $('dashInput').addEventListener('input', ()=>{
   if(!q.trim() && DASH_TEL){ DASH_TEL = ''; dashPintar_(); }
 });
 ENTRAR.dashboard = ()=>{ if(!DASH_TEL) dashPintar_(); };
+
+/* ===== MIS PENDIENTES en el móvil (04NOVV1-MOVIL, 2026-11-04, a petición de César, #166 P8–P10) =====
+   Los mismos pendientes del escritorio (hoja PENDIENTES, Pendientes.gs): los privados solo los ve quien los creó; con COMPARTIDO los ven
+   César y Lucero, cualquiera los marca hechos o los borra, y se ve quién lo creó y quién lo completó. Se actualiza al abrir, al guardar y
+   cada 30 s con la ventana abierta. */
+const PEND = { lista: [], comp: false, timer: null };
+async function pendCargar_(){
+  try{
+    const r = await fetch(APPS_SCRIPT_URL + '?action=getPendientes&usuarioKey=' + encodeURIComponent(CURRENT_USER_KEY || '')).then(x=> x.json());
+    if(!r || r.ok !== true) throw new Error((r && r.error) || 'sin respuesta');
+    PEND.lista = r.pendientes || []; $('pdEstado').textContent = '';
+  }catch(err){ $('pdEstado').textContent = /no reconocida|no válida/i.test(err.message) ? 'Falta pegar Pendientes.gs y Codigo.gs en Apps Script (Nueva versión).' : 'Sin conexión: ' + err.message; }
+  pendPintar_();
+}
+async function pendAccion_(datos){
+  try{ const r = await post_(Object.assign({ action:'pendientesAccion', usuarioKey: CURRENT_USER_KEY }, datos)); PEND.lista = r.pendientes || []; }
+  catch(err){ notificar('Mis pendientes: ' + err.message, 'error'); }
+  pendPintar_();
+}
+function pendPintar_(){
+  const yo = String(CURRENT_USER_KEY || '').toLowerCase();
+  const orden = PEND.lista.filter(n=> !n.ok).concat(PEND.lista.filter(n=> n.ok));
+  $('pdLista').innerHTML = orden.map(n=>{
+    const mio = !n.uKey || n.uKey === yo;
+    const quien = (n.comp ? 'Creó ' + (n.u || '') : '') + (n.ok && n.hechoPor ? (n.comp ? ' · ' : '') + 'completó ' + n.hechoPor : '');
+    return `<div class="pend ${n.ok ? 'hecha' : ''}"><input type="checkbox" data-pd-ok="${esc(n.id)}"${n.ok ? ' checked' : ''} aria-label="Hecho">
+      <div><span class="t">${esc(n.t)}</span>${n.comp ? '<span class="tag">COMPARTIDO</span>' : ''}${quien ? `<div class="k">${esc(quien)}</div>` : ''}</div>
+      <div class="acc">${mio ? `<button type="button" data-pd-sh="${esc(n.id)}">${n.comp ? 'Privado' : 'Compartir'}</button>` : ''}<button type="button" data-pd-x="${esc(n.id)}" aria-label="Borrar">✕</button></div></div>`;
+  }).join('') || '<div class="vacio-panel">Sin pendientes.</div>';
+  const n = PEND.lista.filter(x=> !x.ok).length;
+  $('dashPendN').textContent = n ? ` (${n})` : '';
+  $('pdLimpiar').style.display = PEND.lista.some(x=> x.ok) ? '' : 'none';
+}
+$('dashPendBtn').addEventListener('click', ()=>{
+  abrirOv_('ov-pendientes'); pendPintar_(); pendCargar_();
+  clearInterval(PEND.timer);
+  PEND.timer = setInterval(()=>{ if(!$('ov-pendientes').classList.contains('open')){ clearInterval(PEND.timer); return; } pendCargar_(); }, 30000);
+});
+$('pdComp').addEventListener('click', ()=>{ PEND.comp = !PEND.comp; $('pdComp').classList.toggle('on', PEND.comp); $('pdComp').setAttribute('aria-pressed', PEND.comp ? 'true' : 'false'); });
+const pendAgregar_ = ()=>{ const t = $('pdTexto').value.replace(/\s+/g, ' ').trim(); if(!t) return; $('pdTexto').value = ''; pendAccion_({ accion:'crear', id: Date.now() + '-' + Math.floor(Math.random() * 1000), texto: t, compartido: PEND.comp }); };
+$('pdAgregar').addEventListener('click', pendAgregar_);
+$('pdTexto').addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); pendAgregar_(); } });
+$('pdLista').addEventListener('change', e=>{ const c = e.target.closest('[data-pd-ok]'); if(c) pendAccion_({ accion:'hecho', id: c.dataset.pdOk, ok: c.checked }); });
+$('pdLista').addEventListener('click', e=>{
+  const x = e.target.closest('[data-pd-x]'); if(x){ pendAccion_({ accion:'borrar', id: x.dataset.pdX }); return; }
+  const s = e.target.closest('[data-pd-sh]'); if(s){ const n = PEND.lista.find(y=> y.id === s.dataset.pdSh); if(n) pendAccion_({ accion:'compartir', id: n.id, compartido: !n.comp }); }
+});
+$('pdLimpiar').addEventListener('click', ()=> pendAccion_({ accion:'limpiar' }));
 QUITAR_CLIENTE.dashboard = ()=>{ $('dashInput').value = ''; DASH_TEL = ''; dashPintar_(); };
 ['adRes', 'cot', 'trm', 'tickets', 'clientes'].forEach(k=> alCargar_(k, ()=>{ if(VISTA === 'dashboard' && CLI) dashPintar_(); }));
 
@@ -1008,6 +1110,238 @@ function trmColor_(e){
   if(i <= TRM_ESTATUS.indexOf('EQUIPOS ENTREGADOS')) return 'var(--amber)';
   return 'var(--violet)';
 }
+/* 04NOVV1-MOVIL (2026-11-04, a petición de César, #162 fases 0 y 1): el móvil usa LAS MISMAS reglas de pasos del escritorio. El bloque
+   «REGLAS DE PASOS» de abajo es una copia literal de Panel_Master_NEXUS_beta.html que Code vuelve a copiar en cada CONSTRUYE (P39 A); este
+   adaptador le da los nombres que usa el escritorio con los datos del móvil (Master por encabezado, activaciones, cotizaciones). */
+let COL_IDX = {};
+alCargar_('master', ()=>{ COL_IDX = MI; });
+let TRM_ACTIVACIONES = new Map(), TRM_ACT_REGISTROS = new Map();
+function trmActRecalc_(){
+  TRM_ACT_REGISTROS = new Map((DATA.act || []).map(a=> [String(a.FOL), a]));
+  TRM_ACTIVACIONES = new Map((DATA.act || []).filter(a=> !a.ESTATUS || a.ESTATUS === 'ACEPTADO').map(a=> [String(a.FOL), a]));
+}
+alCargar_('trm', trmActRecalc_);
+function trmSinAcentos_(s){ return norm_(s); }
+function trmEstatusActual_(t){ return trmEstatus_(t); }
+function trmNuevasRenov_(r){ return { nuevas: r.nuevas, renov: r.renov }; }
+function trmEsMasivo_(t){ const c = (DATA.cot || []).find(x=> x['FOLIO COTIZACIÓN'] === (t && t['FOLIO COTIZACIÓN'])); return !!(c && /^COTIZACIÓN MASIVA/.test(String(c['OBSERVACIÓN'] || ''))); }
+/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-04; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
+   y lo copia al móvil en cada CONSTRUYE»). NO EDITAR AQUÍ: se reemplaza completo desde Panel_Master_NEXUS_beta.html. ===== */
+const TRM_PASOS_N_ = [
+  { base:'cot',    auto:true, est:'COTIZACION VALIDADA', t:'COTIZACIÓN VALIDADA', legado:['cot'] },
+  { base:'seclie', auto:true, abre:true, noMasivo:true, t:'SECLIENTE MC', legado:['seclie'] },
+  { base:'sol',    abre:true, est:'ENVIADA', noMasivo:true, t:'ENVÍO SOLICITUD', legado:['sol'] },
+  { base:'eqsol',  auto:true, noMasivo:true, t:'EQUIPOS SOLICITADOS', legado:[] },
+  { base:'aut',    abre:true, est:'AUTORIZADA', noMasivo:true, t:'AUTORIZADA', legado:['aut'] },
+  { base:'imei',   auto:true, abre:true, t:'IMEI / ICCID', legado:['imei'] },
+  { base:'actenv', abre:true, est:'ACTIVACION ENVIADA', noMasivo:true, t:'ACTIVACIÓN', legado:[] },   // 21OCTV8 (#40 P99–P101)
+  { base:'act',    auto:true, abre:true, est:'ACTIVADA', t:'DATOS DE ACTIVACIÓN', legado:['act'] },
+  { base:'fact',   abre:true, est:'FACTURADA', t:'FACTURADA', legado:['fact'] },
+  { base:'pago',   est:'FACTURA PAGADA', na:true, t:'FACTURA PAGADA', legado:['pago'] },
+  { base:'recol',  est:'RECOLECTADA', t:'RECOLECCIÓN', legado:['recol'] },
+  { base:'entreg', est:'EQUIPOS ENTREGADOS', t:'EQUIPOS ENTREGADOS', legado:['entreg'] },
+  { base:'contr',  abre:true, est:'CONTRATO GENERADO', t:'CONTRATOS', legado:['contr'] },
+  { base:'firma',  abre:true, est:'CONTRATO FIRMADO', t:'CONTRATO FIRMADO', legado:['contr'] },
+  { base:'exparm', abre:true, est:'EXPEDIENTE ARMADO', t:'EXPEDIENTE', legado:['exparm'] },
+  { base:'expent', est:'EXPEDIENTE ENTREGADO', corte:true, t:'EXPEDIENTE ENTREGADO', legado:['expent'] },
+  { base:'aprob',  auto:true, est:'EXPEDIENTE APROBADO', t:'EXPEDIENTE APROBADO', legado:['aprob'] },
+  { base:'compl',  auto:true, est:'COMPLETADA', t:'COMPLETADO', legado:['compl'] }
+].map(p=> Object.assign(p, { tipo:'N', id:'n.' + p.base }));
+const TRM_PASOS_R_ = [
+  { base:'cot',    auto:true, est:'COTIZACION VALIDADA', t:'COTIZACIÓN VALIDADA', legado:['cot'] },
+  { base:'sol',    abre:true, est:'ENVIADA', t:'ENVÍO SOLICITUD', legado:['sol'] },
+  { base:'eqsol',  abre:true, t:'EQUIPOS SOLICITADOS', legado:['eqsol'] },
+  { base:'imei',   auto:true, abre:true, t:'IMEI / ICCID', legado:['imei'] },
+  { base:'escal',  est:'EN AUTORIZACION', t:'ESCALADA PARA AUTORIZACIÓN', legado:['aut'], notaLegado:'trámite anterior' },   // P84
+  { base:'aut',    est:'AUTORIZADA', t:'AUTORIZADA', legado:['aut'] },
+  { base:'fact',   abre:true, est:'FACTURADA', t:'FACTURADA', legado:['fact'] },
+  { base:'pago',   est:'FACTURA PAGADA', na:true, t:'FACTURA PAGADA', legado:['pago'] },
+  { base:'recol',  est:'RECOLECTADA', t:'RECOLECCIÓN', legado:['recol'] },
+  { base:'entreg', est:'EQUIPOS ENTREGADOS', t:'EQUIPOS ENTREGADOS', legado:['entreg'] },
+  { base:'contr',  abre:true, est:'CONTRATO GENERADO', t:'CONTRATOS', legado:['contr'] },
+  { base:'firma',  est:'CONTRATO FIRMADO', t:'CONTRATO FIRMADO', legado:['contr'] },   // 22OCTV2 (#62): se marca a mano
+  { base:'exparm', est:'EXPEDIENTE ARMADO', t:'EXPEDIENTE', legado:['exparm'] },
+  { base:'expent', est:'EXPEDIENTE ENTREGADO', corte:true, t:'EXPEDIENTE ENTREGADO', legado:['expent'] },
+  { base:'conf',   auto:true, abre:true, est:'RENOVACION APLICADA', t:'RENOVACIÓN APLICADA', legado:['conf'], avisoPrevios:true },   // P82
+  { base:'compl',  auto:true, est:'COMPLETADA', t:'COMPLETADO', legado:['compl'] }
+].map(p=> Object.assign(p, { tipo:'R', id:'r.' + p.base }));
+const TRM_PASOS_ = TRM_PASOS_N_.concat(TRM_PASOS_R_);
+const TRM_PASOS_MASIVO_ = {
+  N: ['cot', 'contr', 'fact', 'act', 'compl'].map(b=> TRM_PASOS_N_.find(p=> p.base === b)),
+  R: ['cot', 'contr', 'fact', 'conf', 'compl'].map(b=> TRM_PASOS_R_.find(p=> p.base === b))
+};
+function trmPasoDef_(id){ return TRM_PASOS_.find(p=> p.id === id) || null; }
+const TRM_PASO_AUTO_TXT_ = {
+  cot:'al aceptar la cotización', seclie:'al capturar el folio SECLIENTE (clic en el paso)', eqsol:'al marcar el envío de la solicitud',
+  imei:'al cargar los IMEI / ICCID que le tocan a cada línea (clic en el paso abre la ventana de carga)', act:'al cargar el reporte de activación de todas las líneas nuevas (clic en el paso)',
+  conf:'al pegar la confirmación de renovación de Telcel (clic en el paso)', aprob:'cuando Telcel aprueba el expediente de cada línea nueva (ESTATUS NUEVAS: ET = F)',
+  compl:'cuando todas las líneas están pagadas (EC = P, marcadas por César en Comisiones)'   // 22OCTV6 (#67)
+};
+const TRM_ESTATUS_V1_ = ['INICIAL', 'ENVIADA', 'AUTORIZADA', 'ACTIVACIÓN', 'FACTURADA', 'APLICADA', 'EN PAGO', 'RECOLECCIÓN', 'EQUIPOS ENTREGADOS', 'ARMADO EXPEDIENTE', 'EXPEDIENTE ENTREGADO', 'COMPLETADO'];
+const TRM_PASO_EST_V1_ = { cot:'INICIAL', sol:'ENVIADA', aut:'AUTORIZADA', act:'ACTIVACIÓN', fact:'FACTURADA', conf:'APLICADA', pago:'EN PAGO', recol:'RECOLECCIÓN', entreg:'EQUIPOS ENTREGADOS', exparm:'ARMADO EXPEDIENTE', expent:'EXPEDIENTE ENTREGADO', compl:'COMPLETADO' };
+function trmPasoRegistro_(t, id){
+  const ids = Array.isArray(id) ? id : [id];
+  const regs = (t.pasos || []).filter(x=> ids.includes(x.PASO));
+  const u = regs[regs.length - 1];
+  return u && u.ACCION !== 'DESMARCADO' ? u : null;
+}
+function trmPasoRegistroDe_(t, p){
+  const propios = (t.pasos || []).filter(x=> x.PASO === p.id);
+  if(propios.length){ const u = propios[propios.length - 1]; return u.ACCION !== 'DESMARCADO' ? u : null; }
+  return p.legado && p.legado.length ? trmPasoRegistro_(t, p.legado) : null;
+}
+function trmEstatusLegado_(t){
+  const m = /MIGRACI[ÓO]N CHECKLIST:\s*(.+?)\s*→/i.exec(String(t.HISTORIAL || ''));
+  if(m) return TRM_ESTATUS_V1_.find(e=> trmSinAcentos_(e) === trmSinAcentos_(m[1])) || '';
+  // Sin migración todavía (falta pegar TramitesPanel.gs): solo los trámites que nacieron con el checklist anterior (su HISTORIAL
+  // empieza en INICIAL) toman su estatus guardado; los nuevos empiezan en COTIZACION VALIDADA y no tienen pasos anteriores.
+  if(!/^\s*\S+ \S+ INICIAL/.test(String(t.HISTORIAL || ''))) return '';
+  const s = trmSinAcentos_(t.ESTATUS || '');
+  const v1 = TRM_ESTATUS_V1_.find(e=> trmSinAcentos_(e) === s) || (s === 'COMISION PAGADA' ? 'COMPLETADO' : '');
+  if(v1) return v1;
+  // Ya tiene un estatus nuevo: el último estatus del checklist anterior que aparece en el HISTORIAL.
+  let ult = '';
+  String(t.HISTORIAL || '').split('\n').forEach(l=>{
+    const m2 = /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2} (.+?)(?: \(|$)/.exec(l.trim()), fl = /→ ([^→(]+?)\s*$/.exec(l.trim());
+    [m2 && m2[1], fl && fl[1]].forEach(x=>{ const e = x && TRM_ESTATUS_V1_.find(v=> trmSinAcentos_(v) === trmSinAcentos_(x)); if(e) ult = e; });
+  });
+  return ult;
+}
+function trmHistFecha_(t, est){
+  let f = '';
+  String(t.HISTORIAL || '').split('\n').forEach(l=>{
+    const s = l.trim();
+    if(/MIGRACI[ÓO]N CHECKLIST/i.test(s)) return;
+    const m = /^(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}) (.+?)(?: \(|$)/.exec(s), fl = /→ ([^→]+)$/.exec(s);
+    if(m && (trmSinAcentos_(m[2]) === trmSinAcentos_(est) || (fl && trmSinAcentos_(fl[1]) === trmSinAcentos_(est)))) f = m[1];
+  });
+  return f;
+}
+function trmSerieReq_(x){
+  const g = c=> String(x.fila[COL_IDX[c]] == null ? '' : x.fila[COL_IDX[c]]).trim().toUpperCase();
+  const modelo = g('MODELO');
+  // 22OCTV6 (2026-10-22, a petición de César, #65: "los equipos en BOLSA no llevan IMEI; ese campo se acepta en blanco"): BOLSA se revisa
+  // antes que renovación. BOLSA en renovación no pide IMEI ni ICCID (conserva su SIM); BOLSA en N / M / P pide solo el ICCID.
+  if(modelo === 'BOLSA') return x.tr === 'R' ? { imei:false, iccid:false, tipo:'BOLSA' } : { imei:false, iccid:true, tipo:'BOLSA' };
+  if(x.tr === 'R') return { imei:true, iccid:false, tipo:'renovación' };
+  if(!modelo || modelo === '-' || modelo === 'NA' || modelo === 'LIBRE') return { imei:false, iccid:true, tipo:'libre' };
+  if(/IPHONE/.test(g('MARCA') + ' ' + modelo)) return { imei:true, iccid:false, opcionalIccid:true, tipo:'iPhone' };
+  return { imei:true, iccid:true, tipo:'plazo forzoso' };
+}
+function trmImeiOk_(v){ return /^\d{15}$/.test(String(v == null ? '' : v).replace(/\D/g, '')) && /^\s*\d[\d\s]*$/.test(String(v == null ? '' : v)); }
+function trmIccidOk_(v){ const s = String(v == null ? '' : v).trim().toUpperCase(); return /ESIM/.test(s.replace(/[^A-Z]/g, '')) || /^8952\d{15,16}$/.test(s.replace(/\D/g, '')); }
+function trmSerieFalta_(x){
+  const req = trmSerieReq_(x), val = c=> x.fila[COL_IDX[c]];
+  return ['IMEI', 'ICCID'].filter(c=> req[c.toLowerCase()] && !(c === 'IMEI' ? trmImeiOk_(val(c)) : trmIccidOk_(val(c))));
+}
+function trmLineasDe_(r, tipo){ return r.lineas.filter(x=> x.fila && !x.cancelada && (tipo === 'R' ? x.tr === 'R' : ['N', 'M', 'P'].includes(x.tr))); }
+function trmFolDe_(x){ return String(x.fila[COL_IDX['FOL']] == null ? '' : x.fila[COL_IDX['FOL']]).trim(); }
+function trmEtDe_(x){ return String(x.fila[COL_IDX['ET']] || '').trim().toUpperCase(); }
+function trmComPagada_(fila){ return String(fila[COL_IDX['EC']] || '').trim().toUpperCase() === 'P'; }
+function trmPaperless_(t){ const rec = trmPasoRegistroDe_(t, trmPasoDef_('n.contr')); return !!(rec && /PAPERLESS/.test(rec.NOTA || '')); }
+function trmPasoAutoHecho_(p, t, r){
+  if(p.base === 'cot') return true;
+  if(p.base === 'seclie') return !!String(t.SECLIENTE || '').trim();
+  const vivas = trmLineasDe_(r, p.tipo);
+  if(!vivas.length) return false;
+  if(p.base === 'imei') return vivas.every(x=> trmSerieFalta_(x).length === 0);
+  if(p.base === 'act' || p.base === 'conf') return vivas.every(x=> TRM_ACTIVACIONES.has(trmFolDe_(x)));
+  if(p.base === 'aprob') return vivas.every(x=> trmEtDe_(x) === 'F');
+  if(p.base === 'compl') return vivas.every(x=> trmComPagada_(x.fila));   // 22OCTV6 (#67): solo EC = P
+  return false;
+}
+function trmPasos_(t, r){
+  r = r || trmResumen_(t);
+  const { nuevas, renov } = trmNuevasRenov_(r);
+  const hasN = nuevas > 0 || !renov, hasR = renov > 0;   // sin líneas ligadas se toma como de líneas nuevas
+  const masivo = trmEsMasivo_(t);
+  const legado = trmEstatusLegado_(t), iLeg = TRM_ESTATUS_V1_.indexOf(legado);
+  const listas = [];
+  [['N', TRM_PASOS_N_, hasN], ['R', TRM_PASOS_R_, hasR]].forEach(([tipo, cat, aplica])=>{
+    if(!aplica) return;
+    const lista = (masivo ? TRM_PASOS_MASIVO_[tipo] : cat).map((p, i)=>{   // 21OCTV8 (#26b P83): masivos con su propio checklist
+      const rec = trmPasoRegistroDe_(t, p);
+      let hecho = false, origen = '', fecha = '';
+      if(rec) hecho = true;
+      if(p.auto && !hecho){
+        hecho = trmPasoAutoHecho_(p, t, r);
+        if(p.base === 'cot') fecha = String(t.FECHA || '');
+      }
+      // Trámite que venía del checklist anterior: los pasos con estatus hasta el que tenía al migrar ya están hechos.
+      if(!hecho && iLeg >= 0 && !(t.pasos || []).some(x=> x.PASO === p.id)){
+        const viejo = p.legado.find(b=> TRM_PASO_EST_V1_[b] && TRM_ESTATUS_V1_.indexOf(TRM_PASO_EST_V1_[b]) <= iLeg && (b !== 'act' || tipo === 'N') && (b !== 'conf' || tipo === 'R'));
+        if(viejo){ hecho = true; origen = 'historial'; fecha = trmHistFecha_(t, TRM_PASO_EST_V1_[viejo]); }
+      }
+      if(rec && (rec['FECHA PASO'] || '')) fecha = rec['FECHA PASO'];
+      const legadoRec = !!(rec && rec.PASO !== p.id);
+      return { p, i, tipo, etiqueta: p.t, hecho, na: !!(rec && rec.ACCION === 'NO APLICA'), fecha, usuario: rec ? rec.USUARIO || '' : '',
+        nota: (origen || legadoRec) && p.notaLegado ? p.notaLegado : (rec ? rec.NOTA || '' : ''), origen: origen || (legadoRec && p.notaLegado ? 'historial' : ''), rec, legadoRec };
+    });
+    // EQUIPOS SOLICITADOS de Nuevas: automático al marcar el envío de la solicitud (misma fecha).
+    const eq = lista.find(x=> x.p.base === 'eqsol' && tipo === 'N'), so = lista.find(x=> x.p.base === 'sol');
+    if(eq && !eq.hecho && so && so.hecho){ eq.hecho = true; eq.fecha = so.fecha; eq.porSol = true; }
+    // ESCALADA (P84): en trámites anteriores se da por hecha si AUTORIZADA ya está hecha, con su fecha y la nota "trámite anterior".
+    const es = lista.find(x=> x.p.base === 'escal'), au = lista.find(x=> x.p.base === 'aut');
+    if(es && !es.hecho && au && au.hecho && (au.origen || au.legadoRec)){ es.hecho = true; es.fecha = au.fecha; es.origen = 'historial'; es.nota = 'trámite anterior'; }
+    listas.push({ tipo, lista });
+  });
+  return { listas, lista: listas.flatMap(l=> l.lista), hasN, hasR, masivo };
+}
+function trmEstatusDeLista_(lista){
+  let e = 'COTIZACION VALIDADA';
+  lista.forEach(x=>{ if(x.hecho && x.p.est) e = x.p.est; });
+  return e;
+}
+function trmEstatusDePasos_(P){
+  const listas = Array.isArray(P) ? [{ lista: P }] : P.listas;
+  return listas.map(l=> trmEstatusDeLista_(l.lista)).reduce((a, e)=> TRM_ESTATUS.indexOf(e) < TRM_ESTATUS.indexOf(a) ? e : a, 'COMPLETADA');
+}
+function trmEstatusSimulado_(P, x, hecho){
+  return trmEstatusDePasos_({ listas: P.listas.map(l=> ({ lista: l.lista.map(y=> y === x ? Object.assign({}, y, { hecho }) : y) })) });
+}
+function trmPasosFaltan_(P, x){
+  if(x.p.id === 'r.conf') return [];
+  const L = P.listas.find(l=> l.lista.includes(x));
+  const paralelo = y=> x.p.base === 'contr' && (y.p.base === 'recol' || y.p.base === 'entreg');
+  return L ? L.lista.filter(y=> y.i < x.i && !y.hecho && y.p.est && !paralelo(y)).map(y=> y.etiqueta) : [];
+}
+function trmPasoNoDesmarcable_(t, P, x){
+  if(trmEstatusActual_(t) === 'CANCELADO') return 'El trámite está cancelado.';
+  if(x.p.base === 'seclie') return 'SECLIENTE MC no se desmarca: se corrige abriéndolo otra vez.';
+  if(x.porSol) return 'Se marca solo al marcar ENVÍO SOLICITUD: desmarca ese paso.';
+  if(x.origen && !x.rec) return 'Viene del checklist anterior; no tiene registro que desmarcar.';
+  if(x.p.auto && !x.rec) return `Se marca solo por los datos (${TRM_PASO_AUTO_TXT_[x.p.base] || 'automático'}).`;
+  // 03NOVV1 (#150 P15 A): ya no pide desmarcar antes los de adelante (se desmarcan en cascada); solo bloquea un paso automático posterior
+  // marcado por un dato real (p. ej. el expediente aprobado por Telcel), porque se volvería a marcar solo.
+  const { bloquea } = trmPasoCascada_(P, x);
+  if(bloquea.length) return `${bloquea.map(y=> y.etiqueta).join(', ')} ya se marcó por los datos (${bloquea.map(y=> TRM_PASO_AUTO_TXT_[y.p.base] || 'automático').join('; ')}); resuélvelo primero.`;
+  return '';
+}
+function trmPasoCascada_(P, x){
+  const L = (P.listas.find(l=> l.lista.includes(x)) || { lista: [] }).lista;
+  const desp = L.filter(y=> y.i > x.i && y.hecho);
+  const porDato = y=> y.p.auto && (!y.rec || y.rec.ACCION === 'AUTO') && !y.porSol;
+  return { cascada: desp.filter(y=> !porDato(y) && y.rec && !y.legadoRec), bloquea: desp.filter(porDato) };
+}
+function trmDesmarcarItem_(t, r, x, nota){
+  const fols = trmLineasDe_(r, x.tipo).map(trmFolDe_).filter(Boolean);
+  const item = { folioTramite: t['FOLIO TRAMITE'], paso: x.p.id, etiqueta: x.etiqueta, accion: 'DESMARCADO', fechaPaso: '', nota, estatusNuevo: '' };
+  if(x.p.base === 'sol') item.et = { valor: 'I', fols };
+  if(x.p.base === 'expent') item.et = { valor: 'T', desde: ['E'], fols };
+  if(x.p.base === 'contr' && x.tipo === 'N' && /PAPERLESS/.test(x.nota || '')) item.nota = nota + ' · se quita PAPERLESS';
+  return item;
+}
+function trmPasoItem_(t, r, P, x, fechaPaso, nota, extra){
+  const fols = trmLineasDe_(r, x.tipo).map(trmFolDe_).filter(Boolean);
+  let estatusNuevo = '';
+  if(x.p.est){ estatusNuevo = trmEstatusSimulado_(P, x, true); if(estatusNuevo === trmEstatusActual_(t)) estatusNuevo = ''; }
+  const item = Object.assign({ folioTramite: t['FOLIO TRAMITE'], paso: x.p.id, etiqueta: x.etiqueta + (P.listas.length > 1 ? (x.tipo === 'N' ? ' (Nuevas)' : ' (Renovación)') : ''), accion: 'MARCADO', fechaPaso, nota, estatusNuevo }, extra || {});
+  if(x.p.base === 'sol') item.et = { valor: 'T', fols };
+  if(x.p.base === 'expent') item.et = { valor: 'E', fols };   // 18OCTV5 (#110)
+  return item;
+}
+/* ===== FIN REGLAS DE PASOS ===== */
+
 // Liga cada línea del trámite con su renglón de Master: por FOL; si no, por número y cliente, nunca a un FOL menor.
 function trmLineas_(t){
   const porFol = TRM_IDX.fol, porNum = TRM_IDX.num;
@@ -1072,14 +1406,34 @@ function trmPintarDetalle_(){
   const t = DATA.trm.find(x=> x['FOLIO TRAMITE'] === TRM_DET); if(!t) return;
   const r = trmResumen_(t), e = trmEstatus_(t), cli = trmCliente_(t);
   $('trmDetTit').textContent = (cli ? cli['CLIENTE CORTO'] : t.CLIENTE) + ' · ' + t['FOLIO TRAMITE'];
-  const opciones = trmAplicables_(r);
+  /* 04NOVV1-MOVIL (2026-11-04, a petición de César, #162 fase 0, P40 A): el estatus ya no se cambia a mano (lo calculan los pasos, igual
+     que en el escritorio: así no se desliga de TRAMITES PASOS, ET / TC ni del tablero). Se ven los pasos, la nota y el historial. */
+  const P = trmPasos_(t, r), sigs = e === 'CANCELADO' ? [] : P.listas.map(L=> L.lista.find(x=> !x.hecho)).filter(Boolean);
+  const pasosHTML = P.listas.map(L=>{
+    const hechos = L.lista.filter(x=> x.hecho).length;
+    return `<div class="pasos-cab"><span>${P.listas.length > 1 ? (L.tipo === 'N' ? 'Nuevas' : 'Renovación') : 'Pasos'}</span><span class="k">${hechos} de ${L.lista.length} hechos</span></div>`
+      + L.lista.map(x=>{
+        const sig = sigs.includes(x), cls = x.na ? 'hecho na' : x.hecho ? 'hecho' : sig ? 'sig' : '';
+        const meta = x.hecho ? [x.na ? 'No aplica' : '', fecha_(x.fecha), x.usuario, x.origen ? 'del checklist anterior' : (x.p.auto && !x.rec ? 'automático' : ''), x.nota ? String(x.nota).slice(0, 90) : ''].filter(Boolean).join(' · ')
+          : (x.p.auto ? 'Se marca solo ' + String(TRM_PASO_AUTO_TXT_[x.p.base] || '').replace(/\s*\(clic[^)]*\)/g, '') : trmMovilSencillo_(t, x) ? (sig ? 'Siguiente paso' : '') : 'Se hace en el escritorio');
+        const puedeMarcar = e !== 'CANCELADO' && !x.hecho && trmMovilSencillo_(t, x);
+        const puedeDesm = e !== 'CANCELADO' && x.hecho && x.rec && trmMovilSencillo_(t, x) && !trmPasoNoDesmarcable_(t, P, x);
+        return `<div class="paso ${cls}"><span class="ic">${x.na ? '–' : x.hecho ? '✓' : x.i + 1}</span><div><div class="nom">${esc(x.etiqueta)}</div>${meta ? `<div class="meta">${esc(meta)}</div>` : ''}</div>
+          ${puedeMarcar ? `<button type="button" class="marcar" data-tp="${esc(x.p.id)}">Marcar</button>` : puedeDesm ? `<button type="button" class="desmarcar" data-tp="${esc(x.p.id)}">Desmarcar</button>` : '<span></span>'}</div>`;
+      }).join('');
+  }).join('');
+  const hist = String(t.HISTORIAL || '').split(/\r?\n/).filter(Boolean).reverse();
   $('trmDetCuerpo').innerHTML = `
     <div class="sec"><div class="k">Estatus del trámite</div>
-      <select id="trmSelEst" ${e === 'CANCELADO' ? 'disabled' : ''} style="width:100%; height:46px; margin-top:6px; border-radius:10px; border:2px solid ${trmColor_(e)}; background:var(--surface); padding:0 12px; font-size:16px; font-weight:600;">
-        ${e === 'CANCELADO' ? '<option>CANCELADO</option>' : opciones.map((o, i)=> `<option value="${esc(o)}" ${o === e ? 'selected' : ''}>${i + 1}. ${esc(o)}</option>`).join('')}
-      </select>
+      <div style="margin-top:6px"><span class="estatus" style="background:${trmColor_(e)}; color:#08111F; font-size:14px">${esc(e)}</span></div>
       <div class="k" style="margin-top:6px">Desde ${esc(fecha_(t['FECHA ESTATUS']))}${t.SECLIENTE ? ' · SECLIENTE <span class="num">' + esc(t.SECLIENTE) + '</span>' : ''}${t.MC ? ' · MC <span class="num">' + esc(t.MC) + '</span>' : ''}</div>
+      <div class="k">El estatus cambia solo al marcar los pasos.</div>
     </div>
+    <div class="pasos-lista">${pasosHTML}</div>
+    <div class="sec"><div class="sec-t">Nota del trámite</div>
+      <div style="display:flex; gap:8px;"><input id="trmNotaTxt" placeholder="Escribe una nota" style="flex:1; height:44px; border-radius:10px; border:1px solid var(--line); background:var(--surface); padding:0 12px;"><button type="button" class="btn-sec" id="trmNotaBtn">Agregar</button></div>
+    </div>
+    ${hist.length ? `<details class="sec"><summary class="sec-t" style="cursor:pointer">Historial (${hist.length})</summary><div class="hist">${esc(hist.slice(0, 40).join('\n'))}</div></details>` : ''}
     <div class="k" style="padding:10px 14px 4px">${r.vivas.length} línea(s)${r.nuevas ? ' · ' + r.nuevas + ' nuevas' : ''}${r.renov ? ' · ' + r.renov + ' renovación' : ''}</div>
     ${r.lineas.map(x=>{ const f = x.fila; const v = c=> f ? mv(f, c) : '';
       return `<div class="renglon"><div class="riel" style="${x.cancelada ? 'background:var(--red)' : ''}"></div><div class="cuerpo">
@@ -1089,19 +1443,116 @@ function trmPintarDetalle_(){
         <div class="num" style="font-size:13px; color:var(--text-faint)">IMEI ${esc(v('IMEI') || '—')} · ICCID ${esc(v('ICCID') || '—')}</div>
         ${x.cancelada ? '<div class="k" style="color:var(--red)">Cancelada (ET = C)</div>' : ''}${!f ? '<div class="k" style="color:var(--amber)">No se encontró en Master</div>' : ''}
       </div></div>`; }).join('')}`;
-  const sel = $('trmSelEst');
-  if(sel) sel.addEventListener('change', async ()=>{
-    const nuevo = sel.value, antes = { e: t.ESTATUS, f: t['FECHA ESTATUS'] };
-    sel.disabled = true;
+  $('trmDetCuerpo').querySelectorAll('[data-tp]').forEach(b=> b.addEventListener('click', ()=> trmPasoAbrir_(t['FOLIO TRAMITE'], b.dataset.tp)));
+  $('trmNotaBtn').addEventListener('click', async ()=>{
+    const txt = $('trmNotaTxt').value.replace(/\s+/g, ' ').trim();
+    if(txt.length < 3){ notificar('Escribe la nota.', 'aviso'); return; }
+    $('trmNotaBtn').disabled = true;
     try{
-      await post_({ action:'actualizarEstatusTramite', folioTramite: t['FOLIO TRAMITE'], estatus: nuevo, usuario: usuarioNombre_() });
-      const h = new Date(); t.ESTATUS = nuevo; t['FECHA ESTATUS'] = String(h.getDate()).padStart(2, '0') + '/' + String(h.getMonth() + 1).padStart(2, '0') + '/' + h.getFullYear();
-      cacheSet('trm', DATA.trm);
-      notificar(`${t['FOLIO TRAMITE']}: ${nuevo}`, 'ok');
-    }catch(err){ t.ESTATUS = antes.e; t['FECHA ESTATUS'] = antes.f; notificar('No se pudo guardar el estatus: ' + err.message, 'error'); }
+      const res = await post_({ action:'marcarPasosTramite', usuario: usuarioNombre_(), pasos: [{ folioTramite: t['FOLIO TRAMITE'], paso: 'nota', accion: 'NOTA', etiqueta: 'Nota: ' + txt }] });
+      trmMovilAplicarResp_(res);
+      notificar('Nota agregada.', 'ok');
+    }catch(err){ notificar('No se pudo agregar la nota: ' + err.message, 'error'); }
+    $('trmNotaBtn').disabled = false;
     trmPintarDetalle_();
   });
 }
+/* ===== Marcar / desmarcar pasos desde el móvil (04NOVV1-MOVIL, 2026-11-04, a petición de César, #162 fase 1) =====
+   Mismas reglas del escritorio (bloque REGLAS DE PASOS): mismos registros (marcarPasosTramite), estatus, ET de Master y cascada al
+   desmarcar. Desde el teléfono se marcan los pasos de fecha y nota (FACTURA PAGADA, RECOLECCIÓN, EQUIPOS ENTREGADOS, CONTRATO FIRMADO y
+   EXPEDIENTE en papel, EXPEDIENTE ENTREGADO, ESCALADA y AUTORIZADA de renovación); los que piden archivos, correos o texto de Telcel se
+   hacen en el escritorio. */
+function trmMovilSencillo_(t, x){
+  const b = x.p.base;
+  if(x.p.auto) return false;
+  if(['pago', 'recol', 'entreg', 'expent', 'escal'].includes(b)) return true;
+  if(b === 'aut' && x.tipo === 'R') return true;
+  if((b === 'firma' || b === 'exparm') && !(x.tipo === 'N' && trmPaperless_(t))) return true;
+  return false;
+}
+function trmMovilAplicarResp_(res){
+  (res.tramites || []).forEach(u=>{
+    const t = DATA.trm.find(x=> x['FOLIO TRAMITE'] === u.folio);
+    if(t){ t.pasos = u.pasos; t.ESTATUS = u.estatus; t['FECHA ESTATUS'] = u.fechaEstatus; t.HISTORIAL = u.historial; }
+  });
+  if((res.cambiosMaster || []).length && DATA.master.rows.length){
+    const porFol = new Map(DATA.master.rows.map(f=> [String(mv(f, 'FOL')).trim(), f]));
+    res.cambiosMaster.forEach(c=>{ const f = porFol.get(String(c.fol)); if(f && MI[c.col] != null) f[MI[c.col]] = c.valor; });
+    cacheSet('master', DATA.master);
+  }
+  cacheSet('trm', DATA.trm);
+}
+let TP_PEND = null;   // { folio, id, accion, faltan, soloAviso }
+function trmPasoAbrir_(folio, id){
+  const t = DATA.trm.find(x=> x['FOLIO TRAMITE'] === folio); if(!t) return;
+  if(trmEstatus_(t) === 'CANCELADO'){ notificar('El trámite está cancelado.', 'aviso'); return; }
+  const r = trmResumen_(t), P = trmPasos_(t, r), x = P.lista.find(y=> y.p.id === id); if(!x) return;
+  const L = P.listas.find(l=> l.lista.includes(x)).lista;
+  const des = x.hecho;
+  if(des){
+    const no = trmPasoNoDesmarcable_(t, P, x); if(no){ notificar('No se puede desmarcar: ' + no, 'aviso'); return; }
+    TP_PEND = { folio, id, accion: 'desmarcar', faltan: [] };
+  } else {
+    const pi = L.find(y=> y.p.base === 'imei');
+    if(pi && !pi.hecho && x.i > pi.i){ notificar(`Primero se completa "${pi.etiqueta}" (en el escritorio).`, 'aviso'); return; }
+    TP_PEND = { folio, id, accion: 'marcar', faltan: x.p.est ? trmPasosFaltan_(P, x) : [], soloAviso: !!x.p.avisoPrevios };
+  }
+  const et = { sol:'T', expent:'E' }[x.p.base];
+  const casc = des ? trmPasoCascada_(P, x).cascada : [];
+  $('tpTit').textContent = (des ? 'Desmarcar: ' : 'Marcar: ') + x.etiqueta;
+  $('tpSub').textContent = `${folio} · ${(trmCliente_(t) ? trmCliente_(t)['CLIENTE CORTO'] : t.CLIENTE) || ''}${P.listas.length > 1 ? (x.tipo === 'N' ? ' · Nuevas' : ' · Renovación') : ''}`;
+  const av = $('tpAviso'); av.classList.remove('error');
+  av.textContent = des ? (casc.length ? `Se desmarcarán también: ${casc.map(y=> y.etiqueta).join(', ')}.\n` : '') + (x.p.est ? 'El estatus regresa al paso anterior.' : '') + (et === 'E' ? ' Las líneas en ET = E regresan a T.' : '')
+    : (TP_PEND.faltan.length ? `Faltan pasos previos: ${TP_PEND.faltan.join(', ')}.\n` : '') + (et === 'E' ? 'Las líneas pasan a ET = E (expediente entregado) en Master.' : '');
+  $('tpFechaWrap').style.display = des ? 'none' : '';
+  $('tpNaWrap').style.display = !des && x.p.na ? 'flex' : 'none'; $('tpNa').checked = false;
+  const hoy = new Date(), iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+  $('tpFecha').value = iso; $('tpFecha').max = iso;
+  $('tpNota').value = '';
+  const pide = des || (TP_PEND.faltan.length && !TP_PEND.soloAviso);
+  $('tpNotaLbl').textContent = des ? 'Motivo (obligatorio)' : pide ? 'Motivo para marcarlo sin los pasos previos (obligatorio)' : 'Nota (opcional)';
+  $('tpOk').textContent = des ? 'Desmarcar' : 'Marcar'; $('tpOk').disabled = false;
+  abrirOv_('ov-trm-paso');
+}
+$('tpOk').addEventListener('click', async ()=>{
+  const pend = TP_PEND; if(!pend) return;
+  const t = DATA.trm.find(x=> x['FOLIO TRAMITE'] === pend.folio); if(!t) return;
+  const r = trmResumen_(t), P = trmPasos_(t, r), x = P.lista.find(y=> y.p.id === pend.id); if(!x){ notificar('El paso ya no está en el checklist; actualiza Trámites.', 'error'); return; }
+  const des = pend.accion === 'desmarcar';
+  const nota = $('tpNota').value.replace(/\s+/g, ' ').trim();
+  if((des || (pend.faltan.length && !pend.soloAviso)) && nota.length < 5){ notificar(des ? 'Escribe el motivo para desmarcar.' : 'Escribe el motivo para marcarlo sin los pasos previos.', 'aviso'); $('tpNota').focus(); return; }
+  let items, item;
+  if(des){
+    const { cascada, bloquea } = trmPasoCascada_(P, x);
+    if(bloquea.length){ notificar('No se puede desmarcar: ' + trmPasoNoDesmarcable_(t, P, x), 'aviso'); return; }
+    if(cascada.length && !confirm(`Se desmarcarán también: ${cascada.map(y=> y.etiqueta).join(', ')}. ¿Continuar?`)) return;
+    const quitar = cascada.concat([x]);
+    items = cascada.slice().reverse().map(y=> trmDesmarcarItem_(t, r, y, nota + ' · en cascada al desmarcar ' + x.etiqueta)).concat([trmDesmarcarItem_(t, r, x, nota)]);
+    const est = trmEstatusDePasos_({ listas: P.listas.map(l=> ({ lista: l.lista.map(y=> quitar.includes(y) ? Object.assign({}, y, { hecho: false }) : y) })) });
+    if(quitar.some(y=> y.p.est) && est !== trmEstatusActual_(t)) items[items.length - 1].estatusNuevo = est;
+    item = items[items.length - 1];
+  } else {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec($('tpFecha').value);
+    if(!m){ notificar('Elige la fecha.', 'aviso'); return; }
+    const a = new Date(), p2 = n=> String(n).padStart(2, '0');
+    if(new Date(+m[1], +m[2] - 1, +m[3]) > a){ notificar('La fecha no puede ser futura.', 'aviso'); return; }
+    const fechaPaso = `${m[3]}/${m[2]}/${m[1]} ${p2(a.getHours())}:${p2(a.getMinutes())}`;
+    const na = x.p.na && $('tpNa').checked;
+    item = trmPasoItem_(t, r, P, x, fechaPaso, nota, { accion: na ? 'NO APLICA' : 'MARCADO' });
+    items = [item];
+  }
+  $('tpOk').disabled = true;
+  try{
+    const res = await post_({ action:'marcarPasosTramite', pasos: items, usuario: usuarioNombre_() });
+    trmMovilAplicarResp_(res);
+    cerrarOv_('ov-trm-paso'); TP_PEND = null;
+    notificar(`${pend.folio}: ${des ? 'desmarcado' : 'marcado'} "${x.etiqueta}"${items.length > 1 ? ' y ' + (items.length - 1) + ' paso(s) de adelante' : ''}${item.estatusNuevo ? ' → ' + item.estatusNuevo : ''}.`, 'ok');
+    trmPintarDetalle_();
+  }catch(err){
+    const av = $('tpAviso'); av.classList.add('error');
+    av.textContent = 'No se pudo guardar el paso: ' + err.message + '\nNo se perdió nada: revisa tu conexión y vuelve a intentar.';
+  }finally{ $('tpOk').disabled = false; }
+});
 $('trmInput').addEventListener('input', ()=>{ TRM_Q = $('trmInput').value; trmPintar_(); });
 sugerenciasCliente_('trmInput', 'trmSug', row=>{ clienteActivoSet_(row); TRM_Q = ''; $('trmInput').value = ''; trmPintar_(); });
 ENTRAR.tramites = ()=>{ cargar('trm'); cargar('master'); trmPintar_(); };
