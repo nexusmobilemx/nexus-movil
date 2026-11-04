@@ -141,6 +141,19 @@
   .pend .tag{ display:inline-block; margin-left:6px; padding:0 6px; border-radius:99px; font-size:10px; font-weight:700; background:rgba(224,168,87,0.16); color:var(--amber); }
   .pend .acc{ display:flex; gap:6px; }
   .pend .acc button{ height:32px; padding:0 8px; border-radius:8px; border:1px solid #2B4A7A; background:transparent; color:var(--text-faint); font-size:12px; }
+  /* 04NOVV3-MOVIL (#162 fase 2): Qué hago ahora, correos, responsable */
+  .tab-cas{ display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-top:10px; }
+  .tab-cas button{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:8px; border-radius:10px; border:1px solid var(--line); border-left:3px solid var(--c); background:var(--surface); text-align:left; }
+  .tab-cas button b{ font-size:22px; line-height:1; }
+  .tab-cas button span{ font-size:11px; color:var(--text-faint); }
+  .tab-cas button.on{ border-color:var(--c); }
+  .tab-fil{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .tab-fil button{ height:32px; padding:0 12px; border-radius:99px; border:1px solid var(--line); background:transparent; color:var(--text-dim); font-size:13px; }
+  .tab-fil button.on{ background:var(--cyan); border-color:var(--cyan); color:#08111F; font-weight:600; }
+  .correo{ padding:12px 0; border-bottom:1px solid var(--line-soft); }
+  .correo-acc{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+  .correo-acc .btn-prim{ width:auto; height:40px; padding:0 16px; margin:0; }
+  .resp-sel{ width:100%; height:44px; margin-top:6px; border-radius:10px; border:1px solid var(--line); background:var(--surface); padding:0 12px; font-size:15px; }
   .grande{ font-size:22px; line-height:1.1; }
   .mega{ font-size:34px; line-height:1.05; }
   .avance{ height:4px; border-radius:99px; background:var(--line); overflow:hidden; margin-top:6px; }
@@ -401,6 +414,12 @@
   </div>
 </div>
 
+<!-- 04NOVV3-MOVIL (#162 fase 2): correos de Telcel por revisar -->
+<div class="ov" id="ov-correos">
+  <div class="atras"><button type="button" data-atras aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="t">Correos de Telcel</span></div>
+  <div class="ov-cuerpo"><div id="crLista"></div></div>
+</div>
+
 <!-- 04NOVV1-MOVIL (#166 en el móvil): Mis pendientes (hoja PENDIENTES, Pendientes.gs) con el botón COMPARTIDO -->
 <div class="ov" id="ov-pendientes">
   <div class="atras"><button type="button" data-atras aria-label="Cerrar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span class="t">Mis pendientes</span></div>
@@ -477,7 +496,7 @@ function nexusSesionVencida_(){
     return p;
   };
 })();
-const PANEL_VERSION = '04NOVV1-MOVIL';   // 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '04NOVV2-MOVIL';   // 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -562,7 +581,7 @@ async function cacheSet(k, v){
 }
 
 /* ---------- datos: copia guardada al instante + Sheets en segundo plano (42.7) ---------- */
-const DATA = { clientes:[], tareas:[], master:{ headers:[], rows:[] }, adRes:[], adDet:[], pak:[], exist:[], run:[], cot:[], trm:[], act:[], tickets:[] };
+const DATA = { clientes:[], tareas:[], master:{ headers:[], rows:[] }, adRes:[], adDet:[], pak:[], exist:[], run:[], cot:[], trm:[], act:[], tickets:[], correos:[] };
 const CARGADO = {};
 const FUENTES = {
   clientes: { url:'getClientesData', tomar: d=> d.rows || [] },
@@ -575,7 +594,8 @@ const FUENTES = {
   run:      { url:'getInventarioRunning', tomar: d=> d.rows || [] },   // 13OCTV1-MOVIL (#51)
   cot:      { url:'getCotizacionesData', tomar: d=> (d.rows || []).filter(c=> /^C\d{6}-\d{4}$/.test(String(c['FOLIO COTIZACIÓN'] || '').trim())) },
   trm:      { url:'getTramitesData', tomar: d=>{ DATA.act = d.activaciones || []; cacheSet('act', DATA.act); return d.rows || []; } },
-  tickets:  { url:'getRegistroTickets', tomar: d=> d.tickets || [] }
+  tickets:  { url:'getRegistroTickets', tomar: d=> d.tickets || [] },
+  correos:  { url:'getCorreosTelcel', tomar: d=> d.correos || [] }   // 04NOVV3-MOVIL (#162 fase 2)
 };
 const ALCARGAR = {};   // clave -> [funciones a llamar al llegar datos]
 function alCargar_(clave, fn){ (ALCARGAR[clave] = ALCARGAR[clave] || []).push(fn); }
@@ -844,7 +864,7 @@ function dashPintar_(){
   const cont = $('dashContenido');
   if(DASH_TEL){ dashPintarTelefono_(DASH_TEL); return; }
   const row = CLI;
-  if(!row){ cont.innerHTML = `<div class="vacio-panel">Busca un cliente por nombre o RFC, o escribe un número de teléfono para ver su línea.</div>`; return; }
+  if(!row){ dashTabMovilPintar_(); return; }   // 04NOVV3-MOVIL (#162 fase 2): sin cliente buscado, el tablero «Qué hago ahora»
   $('dashInput').value = razonDe_(row);
   const res = adResDe_(row);
   const cot = cotizacionesDe_(row), trm = tramitesAbiertosDe_(row), tk = ticketsDe_(row);
@@ -920,7 +940,119 @@ $('dashInput').addEventListener('input', ()=>{
   if(esNumerico_(q)){ const n = normalizeSearch(q); if(n.length === 10 || n.length === 15 || n.length >= 18 || n.length === 8){ DASH_TEL = n; if(CLI){ CLI = null; pintarChipCliente_(); } dashPintar_(); } return; }
   if(!q.trim() && DASH_TEL){ DASH_TEL = ''; dashPintar_(); }
 });
-ENTRAR.dashboard = ()=>{ if(!DASH_TEL) dashPintar_(); };
+ENTRAR.dashboard = ()=>{ if(!DASH_TEL) dashPintar_(); ['trm', 'master', 'correos', 'cot'].forEach(k=> cargar(k)); };
+
+/* ===== Tablero «Qué hago ahora» en el móvil (04NOVV3-MOVIL, 2026-11-04, a petición de César, #162 fase 2, P41 A) =====
+   Mismo cálculo del escritorio (dashTabModelo_, copiado en el bloque REGLAS DE PASOS): un renglón por trámite abierto con su siguiente
+   paso; casillas Requieren mi acción / Correos / Esperando Telcel / Detenidos y filtros Todos · Míos · César · Lucero · Vencidos. «Míos» y
+   César / Lucero usan el RESPONSABLE del trámite (o quien marcó el último paso). Tocar un renglón abre el trámite. */
+const DASH_TAB_M_ = { cas: '', filtro: 'todos', lista: [] };
+function dashTabMovilPintar_(){
+  const cont = $('dashContenido');
+  if(VISTA !== 'dashboard' || CLI || DASH_TEL) return;
+  if(!DATA.trm.length){ cont.innerHTML = '<div class="vacio-panel">Busca un cliente por nombre o RFC, o escribe un número de teléfono.<br>Cargando trámites…</div>'; return; }
+  let L = []; try{ L = dashTabModelo_(); }catch(e){ console.error(e); }
+  const n = { acc: L.filter(x=> x.accion).length, correo: L.filter(x=> x.correo).length, esp: L.filter(x=> !x.accion).length, rojo: L.filter(x=> x.rojo).length };
+  const cas = [['acc', n.acc, 'Mi acción', 'var(--amber)'], ['correo', n.correo, 'Correos', 'var(--cyan)'], ['esp', n.esp, 'Esperando Telcel', 'var(--green)'], ['rojo', n.rojo, 'Detenidos', 'var(--red)']];
+  const fil = [['todos', 'Todos'], ['mios', 'Míos'], ['cesar', 'César'], ['lucero', 'Lucero'], ['vencidos', 'Vencidos']];
+  let V = L;
+  if(DASH_TAB_M_.cas === 'acc') V = V.filter(x=> x.accion); else if(DASH_TAB_M_.cas === 'correo') V = V.filter(x=> x.correo); else if(DASH_TAB_M_.cas === 'esp') V = V.filter(x=> !x.accion); else if(DASH_TAB_M_.cas === 'rojo') V = V.filter(x=> x.rojo);
+  const f = DASH_TAB_M_.filtro, yo = String(CURRENT_USER_KEY || '').toLowerCase();
+  if(f === 'cesar' || f === 'lucero') V = V.filter(x=> x.quien === f); else if(f === 'mios') V = V.filter(x=> x.quien === yo); else if(f === 'vencidos') V = V.filter(x=> x.rojo);
+  DASH_TAB_M_.lista = V;
+  const pend = (TRM_CORREOS || []).filter(c=> c.ESTADO === 'PENDIENTE').length;
+  cont.innerHTML = `
+    <div class="sec"><div style="display:flex; justify-content:space-between; align-items:baseline;"><div class="sec-t" style="margin:0">Qué hago ahora</div><span class="k">${L.length} en curso${V.length !== L.length ? ' · ' + V.length + ' con el filtro' : ''}</span></div>
+      <div class="tab-cas">${cas.map(c=> `<button type="button" data-tcas="${c[0]}" class="${DASH_TAB_M_.cas === c[0] ? 'on' : ''}" style="--c:${c[3]}"><b class="num">${c[1]}</b><span>${c[2]}</span></button>`).join('')}</div>
+      <div class="tab-fil">${fil.map(x=> `<button type="button" data-tfil="${x[0]}" class="${f === x[0] ? 'on' : ''}">${x[1]}</button>`).join('')}</div>
+      <button type="button" class="btn-sec" id="dashCorreosBtn" style="width:100%; margin-top:8px">Correos de Telcel por revisar${pend ? ' (' + pend + ')' : ''}</button>
+    </div>
+    ${V.length ? V.map((x, i)=>{
+      const nuestra = y=> dashTabLado_(y, x.t && trmEsMasivo_(x.t)) === 'nuestra';
+      const titulo = x.correo && (!x.actual || !nuestra(x.actual)) ? 'Revisar correo · ' + trmCorreoNombrePaso_(x.correo.TIPO) : x.actual ? (nuestra(x.actual) ? 'Falta ' + x.actual.etiqueta : 'Esperando ' + x.actual.etiqueta) : '';
+      const color = x.rojo ? 'var(--red)' : x.accion ? 'var(--amber)' : 'var(--green)';
+      return `<div class="renglon toque" data-tab-i="${i}"><div class="riel" style="background:${color}"></div><div class="cuerpo">
+        <div style="display:flex; justify-content:space-between; gap:8px;"><span style="font-weight:600; color:var(--cyan)">${esc(x.cliente)}</span><span class="k" style="color:${color}">${esc(dashTabHace_(x))}</span></div>
+        <div style="font-size:14px; margin-top:2px">${x.accion ? (x.correo ? '<span class="estatus" style="background:var(--cyan); color:#08111F">CORREO</span> ' : '<span class="estatus" style="background:var(--amber); color:#08111F">TU ACCIÓN</span> ') : ''}${esc(titulo)}</div>
+        <div class="k">${esc(x.folio)} · ${esc(x.tipo)} · paso ${x.nPaso} de ${x.nTot} · faltan ${x.nPend}${x.quien ? ' · ' + (x.quien === 'cesar' ? 'César' : 'Lucero') : ''}</div>
+      </div></div>`;
+    }).join('') : `<div class="vacio-panel">${L.length ? 'Nada coincide con el filtro.' : 'No hay trámites en curso.'}</div>`}
+    <div class="k" style="padding:8px 14px">Busca un cliente arriba para ver su ficha.</div>`;
+}
+$('dashContenido').addEventListener('click', e=>{
+  if(CLI || DASH_TEL) return;
+  const c = e.target.closest('[data-tcas]'); if(c){ DASH_TAB_M_.cas = DASH_TAB_M_.cas === c.dataset.tcas ? '' : c.dataset.tcas; dashTabMovilPintar_(); return; }
+  const f = e.target.closest('[data-tfil]'); if(f){ DASH_TAB_M_.filtro = f.dataset.tfil; dashTabMovilPintar_(); return; }
+  if(e.target.closest('#dashCorreosBtn')){ correosAbrir_(); return; }
+  const it = e.target.closest('[data-tab-i]'); if(!it) return;
+  const x = DASH_TAB_M_.lista[Number(it.dataset.tabI)]; if(!x) return;
+  irA('tramites'); trmAbrir_(x.folio);
+});
+['trm', 'correos', 'master'].forEach(k=> alCargar_(k, ()=>{ if(VISTA === 'dashboard' && !CLI && !DASH_TEL) dashTabMovilPintar_(); }));
+
+/* ===== Correos de Telcel en el móvil (04NOVV3-MOVIL, 2026-11-04, a petición de César, #162 fase 2, P42) =====
+   Los pendientes que trae Apps Script (getCorreosTelcel), con su texto y adjuntos. «Aceptar» en ESCALADA y AUTORIZADA de renovación
+   (marcan solo pasos, igual que el escritorio: con la fecha del correo y el correo guardado en el paso; el correo se reserva APLICANDO para
+   que dos paneles no lo apliquen a la vez). RENOVACIÓN APLICADA, AUTORIZADA de líneas nuevas y FACTURA escriben en Master (INICIO, MC,
+   IMEI / ICCID, facturas) y por ahora se aceptan en el escritorio (pendiente en la cola). «Ya lo revisé» y «Descartar» en todos. */
+function correosAbrir_(){ abrirOv_('ov-correos'); correosPintar_(); cargar('correos', true).then(correosPintar_); }
+function correosAceptable_(c){ return c.TRAMITE && (c.TIPO === 'ESCALADA' || (c.TIPO === 'AUTORIZADA' && /SOLICITUD DE RENOVACI/i.test(String(c.ASUNTO || '')))); }
+function correosPintar_(){
+  const L = (TRM_CORREOS || []).filter(c=> c.ESTADO === 'PENDIENTE').sort((a, b)=> (trmFechaDe_(b['FECHA CORREO']) || 0) - (trmFechaDe_(a['FECHA CORREO']) || 0));
+  $('crLista').innerHTML = L.length ? L.map(c=>{
+    const p = trmCorreoPartes_(c), adj = trmCorreoAdjuntos_(c), id = esc(c['MESSAGE ID']);
+    return `<div class="correo"><div style="display:flex; justify-content:space-between; gap:8px;"><b>${esc(trmCorreoNombrePaso_(c.TIPO))}</b><span class="k">${esc(c['FECHA CORREO'] || '')}</span></div>
+      <div class="k">${esc(c.TRAMITE || 'sin trámite ligado')}${c.CLIENTE ? ' · ' + esc(c.CLIENTE) : ''}</div>
+      <div style="font-size:13px; margin:4px 0">${esc(c.ASUNTO || '')}</div>
+      <details><summary class="k">Ver el texto${adj.length ? ' y ' + adj.length + ' adjunto(s)' : ''}</summary><div class="hist">${esc(p.nuevo || '(sin texto)')}</div>${adj.length ? `<div class="k">Adjuntos: ${esc(adj.join(', '))}</div>` : ''}</details>
+      <div class="correo-acc">
+        ${correosAceptable_(c) ? `<button type="button" class="btn-prim" data-cr-ok="${id}">Aceptar</button>` : `<span class="k">${c.TRAMITE ? 'Se acepta en el escritorio' : 'Sin trámite: se liga en el escritorio'}</span>`}
+        <button type="button" class="btn-sec" data-cr-rev="${id}">Ya lo revisé</button><button type="button" class="btn-sec" data-cr-x="${id}">Descartar</button></div></div>`;
+  }).join('') : '<div class="vacio-panel">No hay correos de Telcel por revisar.</div>';
+}
+async function correoEstado_(id, estado, tramite){ return post_({ action:'marcarCorreoTelcel', messageId: id, estado, tramite: tramite || '', usuario: usuarioNombre_() }); }
+async function correoAceptar_(c){
+  const t = DATA.trm.find(x=> x['FOLIO TRAMITE'] === c.TRAMITE); if(!t){ notificar('El trámite no está cargado.', 'error'); return; }
+  const P = trmPasos_(t), r = trmResumen_(t), id = c['MESSAGE ID'];
+  const fecha = /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(String(c['FECHA CORREO'] || '').trim()) ? String(c['FECHA CORREO']).trim() : String(c['FECHA CORREO'] || '').slice(0, 10) + ' 12:00';
+  const nota = trmCorreoNotaAuto_(id), xe = P.lista.find(y=> y.p.id === 'r.escal'), items = [];
+  if(c.TIPO === 'ESCALADA'){
+    if(!xe || xe.hecho){ notificar('ESCALADA ya está marcada en ' + t['FOLIO TRAMITE'] + '.', 'aviso'); return; }
+    items.push(trmPasoItem_(t, r, P, xe, fecha, nota, { messageId: id }));
+  } else {
+    const conEsc = !!(xe && !xe.hecho);
+    if(conEsc) items.push(trmPasoItem_(t, r, P, xe, fecha, nota, { messageId: id }));
+    const P2 = conEsc ? Object.assign({}, P, { listas: P.listas.map(l=> ({ tipo: l.tipo, lista: l.lista.map(y=> y === xe ? Object.assign({}, y, { hecho: true }) : y) })) }) : P;
+    const xa = P2.listas.flatMap(l=> l.lista).find(y=> y.p.id === 'r.aut');
+    if(!xa){ notificar('El trámite no tiene AUTORIZADA de renovación.', 'error'); return; }
+    if(xa.hecho){ notificar('AUTORIZADA ya está marcada.', 'aviso'); return; }
+    items.push(trmPasoItem_(t, r, P2, xa, fecha, nota, { messageId: id }));
+  }
+  if(!confirm(`¿Marcar ${items.map(i=> i.etiqueta).join(' y ')} en ${t['FOLIO TRAMITE']} con la fecha del correo (${c['FECHA CORREO']})?`)) return;
+  const res0 = await correoEstado_(id, 'APLICANDO').catch(err=> ({ ok:false, error: err.message }));
+  if(!res0 || res0.ok !== true){ notificar('Otro panel ya está aplicando este correo (o falta pegar CorreosAutomaticos.gs).', 'aviso'); return; }
+  try{
+    const res = await post_({ action:'marcarPasosTramite', pasos: items, usuario: usuarioNombre_() });
+    trmMovilAplicarResp_(res);
+    await correoEstado_(id, 'APLICADO', t['FOLIO TRAMITE']);
+    c.ESTADO = 'APLICADO (' + usuarioNombre_() + ')';
+    notificar(`${t['FOLIO TRAMITE']}: ${items.map(i=> i.etiqueta).join(' y ')} con el correo de Telcel.`, 'ok');
+  }catch(err){
+    await correoEstado_(id, 'PENDIENTE').catch(()=>{});
+    notificar('No se pudo aplicar el correo: ' + err.message, 'error');
+  }
+  correosPintar_();
+}
+$('crLista').addEventListener('click', async e=>{
+  const ok = e.target.closest('[data-cr-ok]'), rev = e.target.closest('[data-cr-rev]'), x = e.target.closest('[data-cr-x]');
+  const id = (ok || rev || x) && (ok || rev || x).dataset[ok ? 'crOk' : rev ? 'crRev' : 'crX']; if(!id) return;
+  const c = (TRM_CORREOS || []).find(y=> y['MESSAGE ID'] === id); if(!c) return;
+  if(ok){ await correoAceptar_(c); return; }
+  if(x && !confirm('¿Descartar este correo? Ya no se ofrecerá en el trámite.')) return;
+  try{ await correoEstado_(id, rev ? 'REVISADO' : 'DESCARTADO', c.TRAMITE); c.ESTADO = rev ? 'REVISADO' : 'DESCARTADO'; notificar(rev ? 'Marcado como revisado.' : 'Correo descartado.', 'ok'); }
+  catch(err){ notificar('No se pudo guardar: ' + err.message, 'error'); }
+  correosPintar_();
+});
 
 /* ===== MIS PENDIENTES en el móvil (04NOVV1-MOVIL, 2026-11-04, a petición de César, #166 P8–P10) =====
    Los mismos pendientes del escritorio (hoja PENDIENTES, Pendientes.gs): los privados solo los ve quien los creó; con COMPARTIDO los ven
@@ -1125,6 +1257,12 @@ function trmSinAcentos_(s){ return norm_(s); }
 function trmEstatusActual_(t){ return trmEstatus_(t); }
 function trmNuevasRenov_(r){ return { nuevas: r.nuevas, renov: r.renov }; }
 function trmEsMasivo_(t){ const c = (DATA.cot || []).find(x=> x['FOLIO COTIZACIÓN'] === (t && t['FOLIO COTIZACIÓN'])); return !!(c && /^COTIZACIÓN MASIVA/.test(String(c['OBSERVACIÓN'] || ''))); }
+// 04NOVV3-MOVIL (#162 fase 2): nombres del escritorio para el tablero «Qué hago ahora» y los correos de Telcel
+function clientesNormalizaTexto(s){ return norm_(s); }
+function trmClienteCorto_(txt){ const c = clienteDeTexto_(txt); return c ? String(c['CLIENTE CORTO'] || '').trim() : ''; }
+let TRM_CORREOS = [];
+alCargar_('correos', ()=>{ TRM_CORREOS = DATA.correos || []; });
+Object.defineProperty(globalThis, 'TRAMITES_DATA', { get: ()=> DATA.trm, configurable: true });
 /* ===== REGLAS DE PASOS (copia del escritorio 2026-11-04; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
    y lo copia al móvil en cada CONSTRUYE»). NO EDITAR AQUÍ: se reemplaza completo desde Panel_Master_NEXUS_beta.html. ===== */
 const TRM_PASOS_N_ = [
@@ -1340,6 +1478,81 @@ function trmPasoItem_(t, r, P, x, fechaPaso, nota, extra){
   if(x.p.base === 'expent') item.et = { valor: 'E', fols };   // 18OCTV5 (#110)
   return item;
 }
+function trmFechaDe_(txt){
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?: (\d{1,2}):(\d{2}))?/.exec(String(txt || '').trim());
+  return m ? new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]), Number(m[4] || 0), Number(m[5] || 0)) : null;
+}
+function trmDiasEntre_(a, b){
+  if(!a || !b) return null;
+  const d0 = new Date(a.getFullYear(), a.getMonth(), a.getDate()), d1 = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.round((d1 - d0) / 86400000);
+}
+const DASH_TAB_NUESTROS_ = ['sol', 'seclie', 'imei', 'actenv', 'fact', 'recol', 'entreg', 'contr', 'firma', 'exparm', 'expent', 'conf'];
+function dashTabLado_(x, masivo){
+  const b = x.p.base;
+  if(b === 'cot' || (b === 'eqsol' && x.tipo === 'N')) return null;   // se marcan solos
+  if(b === 'eqsol' && x.tipo === 'R') return 'nuestra';
+  if(b === 'act') return masivo ? 'nuestra' : 'espera';   // masivo: se carga el reporte / confirmación
+  return DASH_TAB_NUESTROS_.includes(b) ? 'nuestra' : 'espera';
+}
+function dashTabFecha_(v){ if(!v) return null; if(v instanceof Date) return isNaN(v) ? null : v; const f = trmFechaDe_(v); if(f) return f; const d = new Date(v); return isNaN(d) ? null : d; }
+function dashTabQuien_(nombre){ const n = clientesNormalizaTexto(nombre || ''); return /CESAR/i.test(n) ? 'cesar' : /LUCERO/i.test(n) ? 'lucero' : ''; }
+function dashTabModelo_(){
+  const hoy = new Date(), out = [];
+  (TRAMITES_DATA || []).forEach(t=>{
+    const est = trmEstatusActual_(t); if(est === 'CANCELADO' || est === 'COMPLETADA') return;
+    let r, P; try{ r = trmResumen_(t); P = trmPasos_(t, r); }catch(e){ return; }
+    const masivo = P.masivo, folio = t['FOLIO TRAMITE'];
+    const cons = P.lista.filter(x=> dashTabLado_(x, masivo));
+    const pend = cons.filter(x=> !x.hecho && !x.na);
+    if(!pend.length) return;
+    // siguiente paso de cada checklist (Nuevas / Renovación); si alguno es nuestro, manda ese
+    const sig = P.listas.map(l=> l.lista.find(x=> dashTabLado_(x, masivo) && !x.hecho && !x.na)).filter(Boolean);
+    const actual = sig.find(x=> dashTabLado_(x, masivo) === 'nuestra') || sig[0];
+    const correos = (TRM_CORREOS || []).filter(c=> c.TRAMITE === folio && c.ESTADO === 'PENDIENTE');
+    const correo = correos[correos.length - 1] || null;
+    const accion = dashTabLado_(actual, masivo) === 'nuestra' || !!correo;
+    // último movimiento: el registro más reciente de sus pasos o el cambio de estatus
+    let ult = dashTabFecha_(t['FECHA ESTATUS']) || dashTabFecha_(t.FECHA), quien = '';
+    (t.pasos || []).forEach(p=>{ const f = dashTabFecha_(p.REGISTRO) || dashTabFecha_(p['FECHA PASO']); if(f && (!ult || f > ult)) ult = f; });
+    const ultPaso = (t.pasos || []).slice().sort((a, b)=> (dashTabFecha_(a.REGISTRO) || 0) - (dashTabFecha_(b.REGISTRO) || 0)).pop();
+    if(ultPaso) quien = dashTabQuien_(ultPaso.USUARIO);
+    if(String(t.RESPONSABLE || '').trim()) quien = dashTabQuien_(t.RESPONSABLE);   // 04NOVV3 (#162 P41 A): manda el responsable asignado
+    const fCorreo = correo ? trmFechaDe_(correo['FECHA CORREO']) : null;
+    const ref = accion && fCorreo && (!ult || fCorreo > ult) ? fCorreo : ult;
+    const dias = ref ? Math.max(0, trmDiasEntre_(ref, hoy)) : 0;
+    // Telcel pasó su plazo: EXPEDIENTE APROBADO a los 15 días de EXPEDIENTE ENTREGADO
+    const xEnt = actual && actual.p.base === 'aprob' ? P.lista.find(y=> y.tipo === actual.tipo && y.p.base === 'expent' && y.hecho) : null;
+    const diasEnt = xEnt ? trmDiasEntre_(dashTabFecha_(xEnt.fecha), hoy) : null;
+    const rojo = (accion && dias > 5) || (diasEnt != null && diasEnt > 15);
+    const c = r.conteo || {};
+    const tipo = masivo ? 'Masivo' : [(c.N || c.M) ? 'Nueva' : '', c.P ? 'Portabilidad' : '', c.R ? 'Renovación' : ''].filter(Boolean).join(' + ') || 'Nueva';
+    const hechos = cons.filter(x=> x.hecho || x.na).length;
+    out.push({ t, folio, cliente: trmClienteCorto_(t.CLIENTE) || t.CLIENTE || '', tipo, actual, accion, correo, rojo, dias, diasEnt, quien, ref,
+      pend, nPend: pend.length, nTot: cons.length, nPaso: hechos + 1, minCorreo: fCorreo ? Math.max(0, Math.round((hoy - fCorreo) / 60000)) : null });
+  });
+  const acc = out.filter(x=> x.accion).sort((a, b)=> (a.ref ? a.ref.getTime() : 0) - (b.ref ? b.ref.getTime() : 0));
+  const esp = out.filter(x=> !x.accion).sort((a, b)=> b.nPend - a.nPend || b.dias - a.dias);
+  return acc.concat(esp);
+}
+function dashTabHace_(x){
+  if(x.correo && x.minCorreo != null && x.accion){ const m = x.minCorreo; return m < 60 ? `Hace ${m} min` : m < 1440 ? `Hace ${Math.round(m / 60)} h` : `Hace ${Math.round(m / 1440)} día(s)`; }
+  if(x.diasEnt != null && x.diasEnt > 15) return `Entregado hace ${x.diasEnt} días`;
+  return x.dias ? (x.rojo ? `Detenido ${x.dias} días` : `${x.dias} día(s) sin avance`) : 'Hoy';
+}
+function trmCorreoNombrePaso_(tipo){ return tipo === 'AUTORIZADA' ? 'AUTORIZADA' : tipo === 'ESCALADA' ? 'ESCALADA PARA AUTORIZACIÓN' : tipo === 'RENOVACION' ? 'RENOVACIÓN APLICADA' : 'FACTURADA'; }
+function trmCorreoNotaAuto_(id){
+  if(!id) return '';
+  const c = (typeof TRM_CORREOS !== 'undefined' ? TRM_CORREOS : []).find(y=> y['MESSAGE ID'] === id);
+  return 'AUTOMÁTICO (correo de Telcel' + (c && c['FECHA CORREO'] ? ' ' + c['FECHA CORREO'] : '') + ')';
+}
+function trmCorreoPartes_(c){
+  const det = String(c.DETALLE || '');
+  const k = det.search(/^\s*(De:|From:|-{4,}|_{6,}|El .{3,80} escribi[oó]:|On .{3,80} wrote:)/m);
+  const nuevo = String(c.NUEVO || '').trim() || (k > 0 ? det.slice(0, k) : det).trim();
+  return { nuevo, citado: k > 0 ? det.slice(k).trim() : '' };
+}
+function trmCorreoAdjuntos_(c){ return String(c.ADJUNTOS || '').split(/\s*,\s*/).map(s=> s.trim()).filter(Boolean); }
 /* ===== FIN REGLAS DE PASOS ===== */
 
 // Liga cada línea del trámite con su renglón de Master: por FOL; si no, por número y cliente, nunca a un FOL menor.
@@ -1366,7 +1579,8 @@ alCargar_('master', ()=>{
 function trmResumen_(t){
   const lineas = trmLineas_(t), vivas = lineas.filter(x=> !x.cancelada);
   const nuevas = vivas.filter(x=> ['N', 'M', 'P'].includes(x.tr)).length, renov = vivas.filter(x=> x.tr === 'R').length;
-  return { lineas, vivas, nuevas, renov };
+  const conteo = {}; vivas.forEach(x=>{ if(x.tr) conteo[x.tr] = (conteo[x.tr] || 0) + 1; });   // 04NOVV3-MOVIL: como el escritorio (tablero)
+  return { lineas, vivas, nuevas, renov, conteo, razon: (trmCliente_(t) ? razonDe_(trmCliente_(t)) : t.CLIENTE) };
 }
 function trmAplicables_(r){ const soloN = ['ACTIVACION ENVIADA', 'ACTIVADA', 'EXPEDIENTE APROBADO'], soloR = ['EN AUTORIZACION', 'RENOVACION APLICADA']; return TRM_ESTATUS.filter(e=> (!soloN.includes(e) || r.nuevas > 0 || !r.renov) && (!soloR.includes(e) || r.renov > 0)); }
 function trmCliente_(t){ return clienteDeTexto_(t.CLIENTE) || null; }
@@ -1429,6 +1643,8 @@ function trmPintarDetalle_(){
       <div class="k" style="margin-top:6px">Desde ${esc(fecha_(t['FECHA ESTATUS']))}${t.SECLIENTE ? ' · SECLIENTE <span class="num">' + esc(t.SECLIENTE) + '</span>' : ''}${t.MC ? ' · MC <span class="num">' + esc(t.MC) + '</span>' : ''}</div>
       <div class="k">El estatus cambia solo al marcar los pasos.</div>
     </div>
+    <div class="sec"><div class="k">Responsable del trámite</div>
+      <select id="trmRespSel" class="resp-sel">${['', 'César Balderas', 'Lucero Hernández'].map(v=> `<option value="${esc(v)}"${String(t.RESPONSABLE || '').trim() === v ? ' selected' : ''}>${v ? esc(v) : 'Sin asignar'}</option>`).join('')}</select></div>
     <div class="pasos-lista">${pasosHTML}</div>
     <div class="sec"><div class="sec-t">Nota del trámite</div>
       <div style="display:flex; gap:8px;"><input id="trmNotaTxt" placeholder="Escribe una nota" style="flex:1; height:44px; border-radius:10px; border:1px solid var(--line); background:var(--surface); padding:0 12px;"><button type="button" class="btn-sec" id="trmNotaBtn">Agregar</button></div>
@@ -1444,6 +1660,13 @@ function trmPintarDetalle_(){
         ${x.cancelada ? '<div class="k" style="color:var(--red)">Cancelada (ET = C)</div>' : ''}${!f ? '<div class="k" style="color:var(--amber)">No se encontró en Master</div>' : ''}
       </div></div>`; }).join('')}`;
   $('trmDetCuerpo').querySelectorAll('[data-tp]').forEach(b=> b.addEventListener('click', ()=> trmPasoAbrir_(t['FOLIO TRAMITE'], b.dataset.tp)));
+  // 04NOVV3-MOVIL (#162 P41 A): responsable del trámite (mismo campo que el escritorio)
+  $('trmRespSel').addEventListener('change', async ev=>{
+    const s = ev.target, antes = String(t.RESPONSABLE || ''); s.disabled = true;
+    try{ await post_({ action:'guardarFoliosTramite', folioTramite: t['FOLIO TRAMITE'], campo:'RESPONSABLE', valor: s.value, usuario: usuarioNombre_() }); t.RESPONSABLE = s.value; cacheSet('trm', DATA.trm); notificar(`Responsable: ${s.value || 'sin asignar'}.`, 'ok'); }
+    catch(err){ s.value = antes; notificar('No se pudo guardar el responsable: ' + err.message, 'error'); }
+    s.disabled = false;
+  });
   $('trmNotaBtn').addEventListener('click', async ()=>{
     const txt = $('trmNotaTxt').value.replace(/\s+/g, ' ').trim();
     if(txt.length < 3){ notificar('Escribe la nota.', 'aviso'); return; }
