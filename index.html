@@ -496,7 +496,7 @@ function nexusSesionVencida_(){
     return p;
   };
 })();
-const PANEL_VERSION = '04NOVV2-MOVIL';   // 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '06NOVV1-MOVIL';   // 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -996,7 +996,8 @@ $('dashContenido').addEventListener('click', e=>{
    que dos paneles no lo apliquen a la vez). RENOVACIÓN APLICADA, AUTORIZADA de líneas nuevas y FACTURA escriben en Master (INICIO, MC,
    IMEI / ICCID, facturas) y por ahora se aceptan en el escritorio (pendiente en la cola). «Ya lo revisé» y «Descartar» en todos. */
 function correosAbrir_(){ abrirOv_('ov-correos'); correosPintar_(); cargar('correos', true).then(correosPintar_); }
-function correosAceptable_(c){ return c.TRAMITE && (c.TIPO === 'ESCALADA' || (c.TIPO === 'AUTORIZADA' && /SOLICITUD DE RENOVACI/i.test(String(c.ASUNTO || '')))); }
+// 06NOVV1 (#176): solo si se ligó por número / ticket / a mano y su tipo corresponde al trámite
+function correosAceptable_(c){ return c.TRAMITE && trmCorreoDelTramite_(c, c.TRAMITE) && (c.TIPO === 'ESCALADA' || (c.TIPO === 'AUTORIZADA' && /SOLICITUD DE RENOVACI/i.test(String(c.ASUNTO || '')))); }
 function correosPintar_(){
   const L = (TRM_CORREOS || []).filter(c=> c.ESTADO === 'PENDIENTE').sort((a, b)=> (trmFechaDe_(b['FECHA CORREO']) || 0) - (trmFechaDe_(a['FECHA CORREO']) || 0));
   $('crLista').innerHTML = L.length ? L.map(c=>{
@@ -1263,7 +1264,7 @@ function trmClienteCorto_(txt){ const c = clienteDeTexto_(txt); return c ? Strin
 let TRM_CORREOS = [];
 alCargar_('correos', ()=>{ TRM_CORREOS = DATA.correos || []; });
 Object.defineProperty(globalThis, 'TRAMITES_DATA', { get: ()=> DATA.trm, configurable: true });
-/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-04; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
+/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-06; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
    y lo copia al móvil en cada CONSTRUYE»). NO EDITAR AQUÍ: se reemplaza completo desde Panel_Master_NEXUS_beta.html. ===== */
 const TRM_PASOS_N_ = [
   { base:'cot',    auto:true, est:'COTIZACION VALIDADA', t:'COTIZACIÓN VALIDADA', legado:['cot'] },
@@ -1509,7 +1510,7 @@ function dashTabModelo_(){
     // siguiente paso de cada checklist (Nuevas / Renovación); si alguno es nuestro, manda ese
     const sig = P.listas.map(l=> l.lista.find(x=> dashTabLado_(x, masivo) && !x.hecho && !x.na)).filter(Boolean);
     const actual = sig.find(x=> dashTabLado_(x, masivo) === 'nuestra') || sig[0];
-    const correos = (TRM_CORREOS || []).filter(c=> c.TRAMITE === folio && c.ESTADO === 'PENDIENTE');
+    const correos = (TRM_CORREOS || []).filter(c=> c.ESTADO === 'PENDIENTE' && trmCorreoDelTramite_(c, folio));   // 06NOVV1 (#176): solo los ligados por número / ticket / a mano y del tipo del trámite
     const correo = correos[correos.length - 1] || null;
     const accion = dashTabLado_(actual, masivo) === 'nuestra' || !!correo;
     // último movimiento: el registro más reciente de sus pasos o el cambio de estatus
@@ -1553,6 +1554,20 @@ function trmCorreoPartes_(c){
   return { nuevo, citado: k > 0 ? det.slice(k).trim() : '' };
 }
 function trmCorreoAdjuntos_(c){ return String(c.ADJUNTOS || '').split(/\s*,\s*/).map(s=> s.trim()).filter(Boolean); }
+function trmCorreoLigaOk_(c){ return /^(NUMERO|TICKET|MANUAL)$/.test(String((c && c.LIGA) || '').trim()) || /^NUMERO \(deshecho/.test(String((c && c.LIGA) || '')); }
+function trmCorreoTipoOk_(c, t){
+  if(!t) return false;
+  let r; try{ r = trmResumen_(t); }catch(e){ return true; }
+  const k = r.conteo || {}, ren = !!k.R, nue = !!(k.N || k.M || k.P);
+  const tp = c.TIPO, deRen = tp === 'RENOVACION' || tp === 'ESCALADA' || (tp === 'AUTORIZADA' && /RENOVACI/i.test(String(c.ASUNTO || '')));
+  if(deRen) return ren;
+  if(tp === 'AUTORIZADA') return nue;
+  return true;   // FACTURA y lo demás: en cualquier trámite
+}
+function trmCorreoDelTramite_(c, folio){
+  if(!c || c.TRAMITE !== folio || !trmCorreoLigaOk_(c)) return false;
+  return trmCorreoTipoOk_(c, (TRAMITES_DATA || []).find(x=> x['FOLIO TRAMITE'] === folio));
+}
 /* ===== FIN REGLAS DE PASOS ===== */
 
 // Liga cada línea del trámite con su renglón de Master: por FOL; si no, por número y cliente, nunca a un FOL menor.
