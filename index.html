@@ -496,7 +496,7 @@ function nexusSesionVencida_(){
     return p;
   };
 })();
-const PANEL_VERSION = '06NOVV1-MOVIL';   // 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '06NOVV3-MOVIL';   // 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -740,7 +740,8 @@ function cerrarOv_(id){
   delete ov.dataset.sucio;
   if(NAV.length && NAV[NAV.length - 1].ov === id) navAtras(); else ov.classList.remove('open');
 }
-document.addEventListener('input', e=>{ const ov = e.target.closest && e.target.closest('.ov'); if(ov) ov.dataset.sucio = '1'; }, true);
+// 06NOVV3-MOVIL (2026-11-06, a petición de César): en Pendientes todo se guarda al momento; salir solo pregunta si quedó texto sin agregar.
+document.addEventListener('input', e=>{ const ov = e.target.closest && e.target.closest('.ov'); if(ov && ov.id !== 'ov-pendientes') ov.dataset.sucio = '1'; if(ov && ov.id === 'ov-pendientes'){ if(String(($('pdTexto') || {}).value || '').trim()) ov.dataset.sucio = '1'; else delete ov.dataset.sucio; } }, true);
 
 /* Vistas */
 const VISTAS = { dashboard:'Dashboard', adendum:'Adendum', clientes:'Clientes', tramites:'Trámites', tareas:'Tareas', preciosak:'Precios AK', cotizacion:'Cotización', masivo:'Masivo' };
@@ -1093,7 +1094,7 @@ $('dashPendBtn').addEventListener('click', ()=>{
   PEND.timer = setInterval(()=>{ if(!$('ov-pendientes').classList.contains('open')){ clearInterval(PEND.timer); return; } pendCargar_(); }, 30000);
 });
 $('pdComp').addEventListener('click', ()=>{ PEND.comp = !PEND.comp; $('pdComp').classList.toggle('on', PEND.comp); $('pdComp').setAttribute('aria-pressed', PEND.comp ? 'true' : 'false'); });
-const pendAgregar_ = ()=>{ const t = $('pdTexto').value.replace(/\s+/g, ' ').trim(); if(!t) return; $('pdTexto').value = ''; pendAccion_({ accion:'crear', id: Date.now() + '-' + Math.floor(Math.random() * 1000), texto: t, compartido: PEND.comp }); };
+const pendAgregar_ = ()=>{ const t = $('pdTexto').value.replace(/\s+/g, ' ').trim(); if(!t) return; $('pdTexto').value = ''; delete $('ov-pendientes').dataset.sucio; pendAccion_({ accion:'crear', id: Date.now() + '-' + Math.floor(Math.random() * 1000), texto: t, compartido: PEND.comp }); };
 $('pdAgregar').addEventListener('click', pendAgregar_);
 $('pdTexto').addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); pendAgregar_(); } });
 $('pdLista').addEventListener('change', e=>{ const c = e.target.closest('[data-pd-ok]'); if(c) pendAccion_({ accion:'hecho', id: c.dataset.pdOk, ok: c.checked }); });
