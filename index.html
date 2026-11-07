@@ -465,22 +465,50 @@ async function nexusLoginServidor_(userKey, password){
   if(!r || r.ok !== true || !r.token) throw new Error((r && r.error) || 'El servidor no respondió.');
   return r;
 }
-let nexusSesionAvisada_ = false;
-function nexusSesionVencida_(){
-  if(nexusSesionAvisada_ || !nexusSesionToken_()) return;   // sin sesión (pantalla de login) no hay nada que cerrar
+/* 07NOVV1 (2026-11-07, a petición de César, #182): «me ha sacado de la sesión constantemente en escritorio y móvil». Antes, UNA respuesta
+   «SESION…» del servidor borraba la sesión y recargaba la página a los 2.5 s (se perdía lo que estuviera en pantalla). Ahora:
+   (1) se confirma con una llamada ligera «ping» después de 1.5 s; si el servidor la acepta, fue un rechazo pasajero y no pasa nada;
+   (2) si de verdad venció, la pantalla de acceso sale ENCIMA del panel, sin recargar ni borrar lo que hay; al entrar se sigue trabajando
+       (repetir la última acción si no se guardó); (3) las respuestas «transitorio» (servidor ocupado) se reintentan solas, 2 veces. */
+let nexusSesionAvisada_ = false, nexusSesionRevisando_ = false;
+async function nexusSesionVencida_(motivo){
+  if(nexusSesionAvisada_ || nexusSesionRevisando_ || !nexusSesionToken_()) return;   // sin sesión (pantalla de login) no hay nada que cerrar
+  nexusSesionRevisando_ = true;
+  try{
+    await new Promise(r=> setTimeout(r, 1500));
+    let j = null;
+    try{ j = await window.fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'ping', __sinRevisar: true }) }).then(x=> x.json()); }catch(e){ return; }   // sin internet: no se cierra nada
+    if(!(j && j.auth === false && /SESION/.test(j.error || ''))) return;   // el servidor sí acepta la sesión: fue pasajero
+    motivo = j.error || motivo || '';
+  } finally { nexusSesionRevisando_ = false; }
   nexusSesionAvisada_ = true;
-  try{ localStorage.removeItem(AUTH_STORAGE_KEY); sessionStorage.removeItem(AUTH_STORAGE_KEY); }catch(e){}
-  const msg = 'Tu sesión venció o ya no es válida. Vuelve a entrar.';
-  if(typeof notificar === 'function') notificar(msg, 'aviso');
-  setTimeout(()=> location.reload(), 2500);
+  const m = /\(([^)]+)\)/.exec(motivo || '');
+  const err = document.getElementById('loginError');
+  if(err){ err.style.display = 'block'; err.textContent = 'Tu sesión se cerró' + (m ? ' (' + m[1] + ')' : '') + '. Vuelve a entrar: lo que tienes abierto se queda como está.'; }
+  const sel = document.getElementById('loginUser'); if(sel && CURRENT_USER_KEY) sel.value = CURRENT_USER_KEY;
+  document.getElementById('loginScreen').style.display = 'flex';
+  setTimeout(()=>{ const p = document.getElementById('loginPass'); if(p) p.focus(); }, 50);
 }
+// Renovación deslizante: si al token le quedan menos de 20 días, el servidor da uno nuevo de 30 (se guarda donde estaba).
+async function nexusSesionRenovar_(){
+  const s = currentSession(); if(!s || Number(s.exp) - Date.now() > 20 * 86400000) return;
+  try{
+    const j = await fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'renovarToken' }) }).then(x=> x.json());
+    if(!j || j.ok !== true || !j.token) return;
+    const payload = JSON.stringify({ userKey: s.userKey, ts: Date.now(), token: j.token, exp: j.exp });
+    try{ if(localStorage.getItem(AUTH_STORAGE_KEY)) localStorage.setItem(AUTH_STORAGE_KEY, payload); sessionStorage.setItem(AUTH_STORAGE_KEY, payload); }catch(e){}
+  }catch(e){}
+}
+setTimeout(()=>{ if(nexusSesionToken_()) nexusSesionRenovar_(); }, 20000);
 (function(){
   const f0 = window.fetch.bind(window);
   window.fetch = function(u, o){
     let url = String(u);
     const alServidor = url.indexOf(APPS_SCRIPT_URL) === 0;
+    let sinRevisar = false;
     try{
       const tk = alServidor ? nexusSesionToken_() : '';
+      if(o && typeof o.body === 'string' && o.body.indexOf('"__sinRevisar":true') !== -1){ sinRevisar = true; o = Object.assign({}, o, { body: o.body.replace(',"__sinRevisar":true', '').replace('"__sinRevisar":true,', '').replace('"__sinRevisar":true', '') }); }
       if(tk){
         if(o && String(o.method || '').toUpperCase() === 'POST' && typeof o.body === 'string'){
           const b = JSON.parse(o.body);
@@ -491,12 +519,19 @@ function nexusSesionVencida_(){
         }
       }
     }catch(e){}
-    const p = f0(u, o);
-    if(alServidor) p.then(resp=> resp.clone().json().then(j=>{ if(j && j.auth === false && /SESION/.test(j.error || '')) nexusSesionVencida_(); }).catch(()=>{})).catch(()=>{});
-    return p;
+    if(!alServidor) return f0(u, o);
+    // #182: «servidor ocupado» (transitorio) se reintenta solo, 2 veces con espera; nunca cierra la sesión
+    const intentar = async (n)=>{
+      const resp = await f0(u, o);
+      let j = null; try{ j = await resp.clone().json(); }catch(e){}
+      if(j && j.transitorio && n < 2){ await new Promise(r=> setTimeout(r, 1200 * (n + 1))); return intentar(n + 1); }
+      if(!sinRevisar && j && j.auth === false && /SESION/.test(j.error || '')) nexusSesionVencida_(j.error);
+      return resp;
+    };
+    return intentar(0);
   };
 })();
-const PANEL_VERSION = '06NOVV3-MOVIL';   // 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '07NOVV1-MOVIL';   // 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -2191,7 +2226,10 @@ $('loginForm').addEventListener('submit', async e=>{
   try{
     if(!USERS_DB[u]) throw new Error('Usuario o contraseña incorrectos.');
     const r = await nexusLoginServidor_(u, p);
-    (rec ? localStorage : sessionStorage).setItem(AUTH_STORAGE_KEY, JSON.stringify({ userKey: u, ts: Date.now(), token: r.token, exp: r.exp }));
+    const pl = JSON.stringify({ userKey: u, ts: Date.now(), token: r.token, exp: r.exp });
+    if(rec){ localStorage.setItem(AUTH_STORAGE_KEY, pl); try{ sessionStorage.setItem(AUTH_STORAGE_KEY, pl); }catch(e2){} } else { try{ localStorage.removeItem(AUTH_STORAGE_KEY); }catch(e2){} sessionStorage.setItem(AUTH_STORAGE_KEY, pl); }   // 07NOVV1 (#182)
+    // 07NOVV1 (#182): si la sesión se cerró con el panel abierto (mismo usuario), se sigue sin recargar
+    if(CURRENT_USER_KEY && u === CURRENT_USER_KEY && $('appRoot').style.display !== 'none'){ $('loginScreen').style.display = 'none'; $('loginPass').value = ''; nexusSesionAvisada_ = false; notificar('Sesión renovada. Si lo último no se guardó, repítelo.', 'ok'); return; }
     location.reload();   // recarga: todas las lecturas del panel salen ya con el token
   }catch(err){
     $('loginError').style.display = 'block'; $('loginError').textContent = err.message; $('loginPass').value = '';
