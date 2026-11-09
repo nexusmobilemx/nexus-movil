@@ -454,7 +454,41 @@ function nexusEquipo_(){
   }catch(e){}
   return id;
 }
-function nexusSesionToken_(){ try{ const s = currentSession(); return s && s.token ? s.token : ''; }catch(e){ return ''; } }
+/* 09NOVV1 (2026-11-09, a petición de César, #189): a Lucero le salía «tu sesión venció o no es válida (sin token)» y el panel no le pedía
+   entrar (la revisión salía antes «si no hay token»). Ahora el token también vive EN MEMORIA de la pestaña: si el navegador u otra pestaña
+   borran el guardado, esta pestaña lo sigue usando (y lo vuelve a guardar) hasta que el servidor lo rechace de verdad. */
+let NEXUS_TOKEN_MEM_ = null;   // { userKey, token, exp, ts }
+function nexusSesionToken_(){
+  try{
+    const s = currentSession();
+    if(s && s.token && (!CURRENT_USER_KEY || s.userKey === CURRENT_USER_KEY)){ NEXUS_TOKEN_MEM_ = { userKey: s.userKey, token: s.token, exp: s.exp, ts: s.ts }; return s.token; }
+    const m = NEXUS_TOKEN_MEM_;
+    if(m && m.token && Number(m.exp) > Date.now() && (!CURRENT_USER_KEY || m.userKey === CURRENT_USER_KEY)){
+      try{ if(!s && !localStorage.getItem(AUTH_STORAGE_KEY)) localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(m)); }catch(e){}   // se vuelve a guardar lo que alguien borró (nunca encima de la sesión de otro usuario)
+      return m.token;
+    }
+  }catch(e){}
+  return '';
+}
+// Motivo de una petición sin token (diagnóstico #189): queda en la consola y en el mensaje.
+function nexusSesionDiag_(){
+  let raw = null; try{ raw = localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY); }catch(e){}
+  let s = null; try{ s = raw ? JSON.parse(raw) : null; }catch(e){}
+  const f = n=>{ const d = new Date(Number(n)); return isNaN(d) ? '?' : String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  if(!raw) return NEXUS_TOKEN_MEM_ ? 'token borrado' : 'sin sesión guardada';
+  if(s && CURRENT_USER_KEY && s.userKey !== CURRENT_USER_KEY) return 'usuario distinto en otra pestaña';
+  if(s && !(Number(s.exp) > Date.now())) return 'sesión vencida el ' + f(s.exp);
+  if(s && !s.token) return 'sesión sin token';
+  return 'desconocido';
+}
+// Otra pestaña cerró o cambió la sesión
+window.addEventListener('storage', e=>{
+  if(e.key !== AUTH_STORAGE_KEY || !CURRENT_USER_KEY) return;
+  let s = null; try{ s = e.newValue ? JSON.parse(e.newValue) : null; }catch(err){}
+  if(!s) notificar('Se cerró la sesión en otra ventana del panel. Esta pestaña sigue con su sesión mientras el servidor la acepte.', 'aviso');
+  else if(s.userKey !== CURRENT_USER_KEY) notificar(`En otra ventana entró ${(USERS_DB[s.userKey] || {}).displayName || s.userKey}. Esta pestaña sigue como ${(USERS_DB[CURRENT_USER_KEY] || {}).displayName || CURRENT_USER_KEY}.`, 'aviso');
+});
+
 async function nexusLoginServidor_(userKey, password){
   let r = null;
   try{
@@ -472,15 +506,18 @@ async function nexusLoginServidor_(userKey, password){
        (repetir la última acción si no se guardó); (3) las respuestas «transitorio» (servidor ocupado) se reintentan solas, 2 veces. */
 let nexusSesionAvisada_ = false, nexusSesionRevisando_ = false;
 async function nexusSesionVencida_(motivo){
-  if(nexusSesionAvisada_ || nexusSesionRevisando_ || !nexusSesionToken_()) return;   // sin sesión (pantalla de login) no hay nada que cerrar
+  if(nexusSesionAvisada_ || nexusSesionRevisando_ || !CURRENT_USER_KEY) return;   // en la pantalla de acceso no hay nada que cerrar
+  const sinToken = !nexusSesionToken_();   // 09NOVV1 (#189): sin token se pide entrar de inmediato (antes salía sin hacer nada)
+  if(sinToken){ motivo = '(' + nexusSesionDiag_() + ')'; console.warn('NEXUS sesión: petición sin token —', nexusSesionDiag_()); }
   nexusSesionRevisando_ = true;
-  try{
+  if(!sinToken) try{
     await new Promise(r=> setTimeout(r, 1500));
     let j = null;
     try{ j = await window.fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'ping', __sinRevisar: true }) }).then(x=> x.json()); }catch(e){ return; }   // sin internet: no se cierra nada
     if(!(j && j.auth === false && /SESION/.test(j.error || ''))) return;   // el servidor sí acepta la sesión: fue pasajero
     motivo = j.error || motivo || '';
   } finally { nexusSesionRevisando_ = false; }
+  nexusSesionRevisando_ = false;
   nexusSesionAvisada_ = true;
   const m = /\(([^)]+)\)/.exec(motivo || '');
   const err = document.getElementById('loginError');
@@ -497,9 +534,13 @@ async function nexusSesionRenovar_(){
     if(!j || j.ok !== true || !j.token) return;
     const payload = JSON.stringify({ userKey: s.userKey, ts: Date.now(), token: j.token, exp: j.exp });
     try{ if(localStorage.getItem(AUTH_STORAGE_KEY)) localStorage.setItem(AUTH_STORAGE_KEY, payload); sessionStorage.setItem(AUTH_STORAGE_KEY, payload); }catch(e){}
+    NEXUS_TOKEN_MEM_ = JSON.parse(payload);   // #189: también en memoria
   }catch(e){}
 }
 setTimeout(()=>{ if(nexusSesionToken_()) nexusSesionRenovar_(); }, 20000);
+// 09NOVV1 (#189): también cada hora mientras el panel está abierto y al volver a la pestaña (una pestaña abierta varios días no llega a vencer).
+setInterval(()=>{ if(nexusSesionToken_()) nexusSesionRenovar_(); }, 3600000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible' && nexusSesionToken_()) nexusSesionRenovar_(); });
 (function(){
   const f0 = window.fetch.bind(window);
   window.fetch = function(u, o){
@@ -509,6 +550,10 @@ setTimeout(()=>{ if(nexusSesionToken_()) nexusSesionRenovar_(); }, 20000);
     try{
       const tk = alServidor ? nexusSesionToken_() : '';
       if(o && typeof o.body === 'string' && o.body.indexOf('"__sinRevisar":true') !== -1){ sinRevisar = true; o = Object.assign({}, o, { body: o.body.replace(',"__sinRevisar":true', '').replace('"__sinRevisar":true,', '').replace('"__sinRevisar":true', '') }); }
+      if(!tk && alServidor && CURRENT_USER_KEY && o && String(o.method || '').toUpperCase() === 'POST' && typeof o.body === 'string'){   // #189: diagnóstico
+        const b0 = JSON.parse(o.body);
+        if(b0 && typeof b0 === 'object' && !Array.isArray(b0) && b0.action !== 'login'){ b0.sinTokenMotivo = nexusSesionDiag_(); o = Object.assign({}, o, { body: JSON.stringify(b0) }); console.warn('NEXUS sesión: ' + b0.action + ' sale sin token —', b0.sinTokenMotivo); }
+      }
       if(tk){
         if(o && String(o.method || '').toUpperCase() === 'POST' && typeof o.body === 'string'){
           const b = JSON.parse(o.body);
@@ -531,7 +576,7 @@ setTimeout(()=>{ if(nexusSesionToken_()) nexusSesionRenovar_(); }, 20000);
     return intentar(0);
   };
 })();
-const PANEL_VERSION = '07NOVV1-MOVIL';   // 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '09NOVV1-MOVIL';   // 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -1300,7 +1345,7 @@ function trmClienteCorto_(txt){ const c = clienteDeTexto_(txt); return c ? Strin
 let TRM_CORREOS = [];
 alCargar_('correos', ()=>{ TRM_CORREOS = DATA.correos || []; });
 Object.defineProperty(globalThis, 'TRAMITES_DATA', { get: ()=> DATA.trm, configurable: true });
-/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-06; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
+/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-09; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
    y lo copia al móvil en cada CONSTRUYE»). NO EDITAR AQUÍ: se reemplaza completo desde Panel_Master_NEXUS_beta.html. ===== */
 const TRM_PASOS_N_ = [
   { base:'cot',    auto:true, est:'COTIZACION VALIDADA', t:'COTIZACIÓN VALIDADA', legado:['cot'] },
@@ -1476,6 +1521,9 @@ function trmEstatusSimulado_(P, x, hecho){
 }
 function trmPasosFaltan_(P, x){
   if(x.p.id === 'r.conf') return [];
+  // 09NOVV1 (2026-11-09, a petición de César, #191): «Los contratos no dependen del paso anterior; se podrán marcar sin marcar pasos previos ni
+  // escribir el motivo». CONTRATOS (Nuevas y Renovación) no tiene previos; CONTRATO FIRMADO y EXPEDIENTE siguen contando a CONTRATOS como previo.
+  if(x.p.base === 'contr') return [];
   const L = P.listas.find(l=> l.lista.includes(x));
   const paralelo = y=> x.p.base === 'contr' && (y.p.base === 'recol' || y.p.base === 'entreg');
   return L ? L.lista.filter(y=> y.i < x.i && !y.hecho && y.p.est && !paralelo(y)).map(y=> y.etiqueta) : [];
@@ -2227,6 +2275,7 @@ $('loginForm').addEventListener('submit', async e=>{
     if(!USERS_DB[u]) throw new Error('Usuario o contraseña incorrectos.');
     const r = await nexusLoginServidor_(u, p);
     const pl = JSON.stringify({ userKey: u, ts: Date.now(), token: r.token, exp: r.exp });
+    NEXUS_TOKEN_MEM_ = JSON.parse(pl);   // 09NOVV1 (#189)
     if(rec){ localStorage.setItem(AUTH_STORAGE_KEY, pl); try{ sessionStorage.setItem(AUTH_STORAGE_KEY, pl); }catch(e2){} } else { try{ localStorage.removeItem(AUTH_STORAGE_KEY); }catch(e2){} sessionStorage.setItem(AUTH_STORAGE_KEY, pl); }   // 07NOVV1 (#182)
     // 07NOVV1 (#182): si la sesión se cerró con el panel abierto (mismo usuario), se sigue sin recargar
     if(CURRENT_USER_KEY && u === CURRENT_USER_KEY && $('appRoot').style.display !== 'none'){ $('loginScreen').style.display = 'none'; $('loginPass').value = ''; nexusSesionAvisada_ = false; notificar('Sesión renovada. Si lo último no se guardó, repítelo.', 'ok'); return; }
