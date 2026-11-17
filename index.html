@@ -659,7 +659,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
     return intentar(0);
   };
 })();
-const PANEL_VERSION = '11NOVV1-MOVIL';   // 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '17NOVV1-MOVIL';   // 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -1655,12 +1655,15 @@ function trmDiasEntre_(a, b){
   const d0 = new Date(a.getFullYear(), a.getMonth(), a.getDate()), d1 = new Date(b.getFullYear(), b.getMonth(), b.getDate());
   return Math.round((d1 - d0) / 86400000);
 }
-const DASH_TAB_NUESTROS_ = ['sol', 'seclie', 'imei', 'actenv', 'fact', 'recol', 'entreg', 'contr', 'firma', 'exparm', 'expent', 'conf'];
+// 17NOVV1 (2026-11-17, a petición de César, #209): mismas reglas que el escritorio. IMEI/ICCID, Facturada, Contrato firmado,
+// Renovación aplicada y Equipos solicitados (R) pasan a espera; en masivos Facturada y Renovación aplicada siguen siendo nuestra acción.
+const DASH_TAB_NUESTROS_ = ['sol', 'seclie', 'actenv', 'recol', 'entreg', 'contr', 'exparm', 'expent'];
 function dashTabLado_(x, masivo){
   const b = x.p.base;
   if(b === 'cot' || (b === 'eqsol' && x.tipo === 'N')) return null;   // se marcan solos
-  if(b === 'eqsol' && x.tipo === 'R') return 'nuestra';
+  if(b === 'eqsol' && x.tipo === 'R') return 'espera';
   if(b === 'act') return masivo ? 'nuestra' : 'espera';   // masivo: se carga el reporte / confirmación
+  if(b === 'fact' || b === 'conf') return masivo ? 'nuestra' : 'espera';
   return DASH_TAB_NUESTROS_.includes(b) ? 'nuestra' : 'espera';
 }
 function dashTabFecha_(v){ if(!v) return null; if(v instanceof Date) return isNaN(v) ? null : v; const f = trmFechaDe_(v); if(f) return f; const d = new Date(v); return isNaN(d) ? null : d; }
@@ -1675,7 +1678,13 @@ function dashTabModelo_(){
     const pend = cons.filter(x=> !x.hecho && !x.na);
     if(!pend.length) return;
     // siguiente paso de cada checklist (Nuevas / Renovación); si alguno es nuestro, manda ese
-    const sig = P.listas.map(l=> l.lista.find(x=> dashTabLado_(x, masivo) && !x.hecho && !x.na)).filter(Boolean);
+    // 17NOVV1 (#209 P13 B + P14 A): con AUTORIZADA marcada cuenta el primer pendiente NUESTRO; antes, el siguiente pendiente.
+    const sig = P.listas.map(l=>{
+      const pendL = l.lista.filter(x=> dashTabLado_(x, masivo) && !x.hecho && !x.na);
+      const aut = l.lista.find(x=> x.p.base === 'aut');
+      if(aut && (aut.hecho || aut.na)) return pendL.find(x=> dashTabLado_(x, masivo) === 'nuestra') || pendL[0];
+      return pendL[0];
+    }).filter(Boolean);
     const actual = sig.find(x=> dashTabLado_(x, masivo) === 'nuestra') || sig[0];
     const correos = (TRM_CORREOS || []).filter(c=> c.ESTADO === 'PENDIENTE' && trmCorreoDelTramite_(c, folio));   // 06NOVV1 (#176): solo los ligados por número / ticket / a mano y del tipo del trámite
     const correo = correos[correos.length - 1] || null;
