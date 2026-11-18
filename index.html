@@ -659,7 +659,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
     return intentar(0);
   };
 })();
-const PANEL_VERSION = '18NOVV1-MOVIL';   // 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '18NOVV2-MOVIL';   // 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -1158,10 +1158,12 @@ $('dashContenido').addEventListener('click', e=>{
    Los pendientes que trae Apps Script (getCorreosTelcel), con su texto y adjuntos. «Aceptar» en ESCALADA y AUTORIZADA de renovación
    (marcan solo pasos, igual que el escritorio: con la fecha del correo y el correo guardado en el paso; el correo se reserva APLICANDO para
    que dos paneles no lo apliquen a la vez). RENOVACIÓN APLICADA, AUTORIZADA de líneas nuevas y FACTURA escriben en Master (INICIO, MC,
-   IMEI / ICCID, facturas) y por ahora se aceptan en el escritorio (pendiente en la cola). «Ya lo revisé» y «Descartar» en todos. */
+   IMEI / ICCID, facturas): desde 18NOVV1-MOVIL (#162 P42 B) RENOVACIÓN APLICADA y FACTURA también se aceptan aquí (correoAceptarRenFact_).
+   «Ya lo revisé» y «Descartar» en todos. */
 function correosAbrir_(){ abrirOv_('ov-correos'); correosPintar_(); cargar('correos', true).then(correosPintar_); }
 // 06NOVV1 (#176): solo si se ligó por número / ticket / a mano y su tipo corresponde al trámite
-function correosAceptable_(c){ return c.TRAMITE && trmCorreoDelTramite_(c, c.TRAMITE) && (c.TIPO === 'ESCALADA' || (c.TIPO === 'AUTORIZADA' && /SOLICITUD DE RENOVACI/i.test(String(c.ASUNTO || '')))); }
+// 18NOVV1-MOVIL (#162 P42 B): + RENOVACIÓN APLICADA y FACTURA (AUTORIZADA de Nuevas se acepta desde el detalle del trámite).
+function correosAceptable_(c){ return c.TRAMITE && trmCorreoDelTramite_(c, c.TRAMITE) && (c.TIPO === 'ESCALADA' || c.TIPO === 'RENOVACION' || c.TIPO === 'FACTURA' || (c.TIPO === 'AUTORIZADA' && /SOLICITUD DE RENOVACI/i.test(String(c.ASUNTO || '')))); }
 function correosPintar_(){
   const L = (TRM_CORREOS || []).filter(c=> c.ESTADO === 'PENDIENTE').sort((a, b)=> (trmFechaDe_(b['FECHA CORREO']) || 0) - (trmFechaDe_(a['FECHA CORREO']) || 0));
   $('crLista').innerHTML = L.length ? L.map(c=>{
@@ -1176,8 +1178,83 @@ function correosPintar_(){
   }).join('') : '<div class="vacio-panel">No hay correos de Telcel por revisar.</div>';
 }
 async function correoEstado_(id, estado, tramite){ return post_({ action:'marcarCorreoTelcel', messageId: id, estado, tramite: tramite || '', usuario: usuarioNombre_() }); }
+/* 18NOVV1-MOVIL (2026-11-18, a petición de César, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan también en el móvil, con la misma
+   lectura del escritorio. RENOVACIÓN: se leen las líneas y folios del correo (solo las del trámite; folios = líneas o uno para todas), se
+   pone INICIO = fecha del correo en Master y se registra cada línea (REGISTRO ACTIVACIONES, cargarReporteActivacion); después se marca
+   RENOVACIÓN APLICADA. Masivos: se siguen confirmando con el PDF en el escritorio. FACTURA: se traen los PDF del correo, se leen en el
+   teléfono (pdf.js), se comparan con lo cotizado y, con «Sí», se guardan (guardarFacturasTramite) y se marca FACTURADA (y FACTURA PAGADA en
+   NO APLICA si no hay pago). Si algo no cuadra se muestra antes de confirmar, igual que en el escritorio. El correo se reserva APLICANDO. */
+async function correoAceptarRenFact_(c, t){
+  const id = c['MESSAGE ID'], folio = t['FOLIO TRAMITE'];
+  const fechaC = /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(String(c['FECHA CORREO'] || '').trim()) ? String(c['FECHA CORREO']).trim() : String(c['FECHA CORREO'] || '').slice(0, 10) + ' 12:00';
+  let P = trmPasos_(t), r = trmResumen_(t);
+  if(c.TIPO === 'RENOVACION'){
+    if(P.masivo){ notificar('Trámite masivo: la renovación se confirma con el PDF de Telcel en el escritorio.', 'aviso'); return; }
+    const x = P.lista.find(y=> y.p.id === 'r.conf');
+    if(!x){ notificar('El trámite no tiene RENOVACIÓN APLICADA.', 'error'); return; }
+    if(x.hecho){ notificar('RENOVACIÓN APLICADA ya está marcada en ' + folio + '.', 'aviso'); return; }
+    trmVincular_();
+    const d = trmRenAnalizarTexto_(c.DETALLE || '', folio);
+    const sel = d.filas.filter(y=> y.ok && y.tramite === folio), malos = d.filas.filter(y=> !(y.ok && y.tramite === folio));
+    if(!sel.length){ notificar('No se puede aplicar: ' + (malos.map(y=> (y.numero || y.fol || '') + ' ' + y.errores.join(', ')).join(' · ') || 'no se encontraron las líneas renovadas en el correo') + '. Revísalo en el escritorio.', 'error'); return; }
+    const fr = /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(d.fecha || '') ? d.fecha : (/^\d{2}\/\d{2}\/\d{4}$/.test(d.fecha || '') ? d.fecha + ' 12:00' : fechaC);
+    const avisos = [d.cantidad && d.cantidad !== d.lineas.length ? `el asunto dice ${d.cantidad} línea(s) y se encontraron ${d.lineas.length}` : '']
+      .concat(malos.map(y=> `${y.numero || y.fol}: ${y.errores.join(', ') || 'no es de este trámite'}`)).concat(sel.filter(y=> y.avisos.length).map(y=> `${y.numero}: ${y.avisos.join(', ')}`)).filter(Boolean);
+    if(!confirm(`RENOVACIÓN APLICADA en ${folio}\n\nINICIO = ${fr.slice(0, 10)} en ${sel.length} línea(s):\n${sel.map(y=> '• ' + y.numero + ' → ' + (y.folioRen || 'sin folio')).join('\n')}${avisos.length ? '\n\n⚠ ' + avisos.join('\n⚠ ') : ''}\n\n¿Aplicar?`)) return;
+    const res0 = await correoEstado_(id, 'APLICANDO').catch(err=> ({ ok:false, error: err.message }));
+    if(!res0 || res0.ok !== true){ notificar('Otro panel ya está aplicando este correo (o falta pegar CorreosAutomaticos.gs).', 'aviso'); return; }
+    try{
+      await trmRenEnviar_(d, sel, fr, c.DETALLE || '');
+      // lo que escribió el servidor, también en la memoria del móvil (INICIO y registro de la línea)
+      sel.forEach(y=>{ if(y.fila && COL_IDX['INICIO'] != null) y.fila[COL_IDX['INICIO']] = fr.slice(0, 10); (DATA.act = DATA.act || []).push({ FOL: String(y.fol), ESTATUS: 'ACEPTADO', TIPO: 'RENOVACIÓN' }); });
+      trmActRecalc_();
+      const r2 = trmResumen_(t), P2 = trmPasos_(t, r2), xc = P2.lista.find(y=> y.p.id === 'r.conf');
+      if(xc && !xc.rec) await trmPasosEnviar_([trmPasoItem_(t, r2, P2, xc, fr, [trmCorreoNotaAuto_(id), 'confirmación de Telcel (móvil)'].join(' · '), { messageId: id })]);
+      await correoEstado_(id, 'APLICADO', folio);
+      c.ESTADO = 'APLICADO (' + usuarioNombre_() + ')';
+      notificar(`${folio}: RENOVACIÓN APLICADA · INICIO ${fr.slice(0, 10)} en ${sel.length} línea(s).`, 'ok');
+      cargar('master', true); cargar('trm', true);
+    }catch(err){ await correoEstado_(id, 'PENDIENTE').catch(()=>{}); notificar('No se pudo aplicar la renovación: ' + err.message, 'error'); }
+    correosPintar_(); return;
+  }
+  // FACTURA
+  const cand = ['n.fact', 'r.fact'].map(pid=> P.lista.find(y=> y.p.id === pid)).filter(y=> y && !y.hecho);
+  if(!cand.length){ notificar('FACTURADA ya está marcada en ' + folio + '.', 'aviso'); return; }
+  let x = cand[0];
+  if(cand.length > 1){ const n = confirm('Trámite con Nuevas y Renovación.\n\nAceptar = la factura es de NUEVAS\nCancelar = es de RENOVACIÓN'); x = cand.find(y=> y.tipo === (n ? 'N' : 'R')) || x; }
+  notificar('Leyendo las facturas del correo…', 'aviso');
+  let facturas = [];
+  try{
+    const rp = await post_({ action:'descargarPdfsCorreoTelcel', messageId: id });
+    for(const a of (rp.archivos || [])){
+      const bin = atob(a.base64), bytes = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const fct = await facLeerPdf_(bytes, a.nombre); fct.messageId = id;
+      if(!(fct.DOCUMENTO && facturas.some(y=> y.DOCUMENTO === fct.DOCUMENTO))) facturas.push(fct);
+    }
+  }catch(err){ notificar('No se pudieron leer las facturas: ' + err.message, 'error'); return; }
+  if(!facturas.length){ notificar('El correo no trae facturas en PDF que se puedan leer.', 'error'); return; }
+  const cmp = facComparar_(t, x.tipo, facturas);
+  const malos = cmp.filas.filter(y=> !y.ok).map(y=> `${y.tipo}: ${y.nota}${y.iccid ? '' : ' (dif. ' + y.dif + ')'}`).concat(cmp.avisos);
+  const mon = v=> '$' + Number(v || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fe = facturas.map(y=> trmFechaDe_(y['FECHA EXPEDICION'])).filter(Boolean).sort((a, b)=> b - a)[0];
+  const p2 = n=> String(n).padStart(2, '0');
+  const fp = fe ? `${p2(fe.getDate())}/${p2(fe.getMonth() + 1)}/${fe.getFullYear()} ${p2(fe.getHours())}:${p2(fe.getMinutes())}` : fechaC;
+  P = trmPasos_(t); r = trmResumen_(t); x = P.lista.find(y=> y.p.id === x.p.id);
+  const faltan = trmPasosFaltan_(P, x);
+  if(!confirm(`FACTURADA en ${folio} (${x.tipo === 'R' ? 'Renovación' : 'Nuevas'})\n\n${facturas.map(y=> '• ' + (y.TIPO || '?') + ' ' + (y.DOCUMENTO || '') + ' ' + mon(y.TOTAL)).join('\n')}\n\n${cmp.todoOk ? '✔ Montos validados contra la cotización.' : '⚠ Lo facturado no cuadra:\n• ' + malos.join('\n• ')}${faltan.length ? '\n\nFaltan pasos previos: ' + faltan.join(', ') + ' (queda anotado).' : ''}\n\nFecha: ${fp}. ¿Marcar FACTURADA y guardar las facturas?`)) return;
+  const res0 = await correoEstado_(id, 'APLICANDO').catch(err=> ({ ok:false, error: err.message }));
+  if(!res0 || res0.ok !== true){ notificar('Otro panel ya está aplicando este correo (o falta pegar CorreosAutomaticos.gs).', 'aviso'); return; }
+  try{
+    await trmFactAplicar_(t, x.tipo, facturas, [id], fp, cmp, malos, faltan, 'aceptado en el móvil');
+    await correoEstado_(id, 'APLICADO', folio);
+    c.ESTADO = 'APLICADO (' + usuarioNombre_() + ')';
+    notificar(`${folio}: FACTURADA · ${facturas.length} factura(s) guardadas${cmp.todoOk ? ' (montos validados)' : ' (con diferencias anotadas)'}.`, cmp.todoOk ? 'ok' : 'aviso');
+  }catch(err){ await correoEstado_(id, 'PENDIENTE').catch(()=>{}); notificar('No se pudieron guardar las facturas: ' + err.message, 'error'); }
+  correosPintar_();
+}
 async function correoAceptar_(c){
   const t = DATA.trm.find(x=> x['FOLIO TRAMITE'] === c.TRAMITE); if(!t){ notificar('El trámite no está cargado.', 'error'); return; }
+  if(c.TIPO === 'RENOVACION' || c.TIPO === 'FACTURA'){ await correoAceptarRenFact_(c, t); return; }   // 18NOVV1-MOVIL (#162 P42 B)
   const P = trmPasos_(t), r = trmResumen_(t), id = c['MESSAGE ID'];
   const fecha = /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(String(c['FECHA CORREO'] || '').trim()) ? String(c['FECHA CORREO']).trim() : String(c['FECHA CORREO'] || '').slice(0, 10) + ' 12:00';
   const nota = trmCorreoNotaAuto_(id), xe = P.lista.find(y=> y.p.id === 'r.escal'), items = [];
@@ -1428,7 +1505,7 @@ function trmClienteCorto_(txt){ const c = clienteDeTexto_(txt); return c ? Strin
 let TRM_CORREOS = [];
 alCargar_('correos', ()=>{ TRM_CORREOS = DATA.correos || []; });
 Object.defineProperty(globalThis, 'TRAMITES_DATA', { get: ()=> DATA.trm, configurable: true });
-/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-11; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
+/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-18; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
    y lo copia al móvil en cada CONSTRUYE»). NO EDITAR AQUÍ: se reemplaza completo desde Panel_Master_NEXUS_beta.html. ===== */
 const TRM_PASOS_N_ = [
   { base:'cot',    auto:true, est:'COTIZACION VALIDADA', t:'COTIZACIÓN VALIDADA', legado:['cot'] },
@@ -1614,6 +1691,7 @@ function trmPasosFaltan_(P, x){
 function trmPasoNoDesmarcable_(t, P, x){
   if(trmEstatusActual_(t) === 'CANCELADO') return 'El trámite está cancelado.';
   if(x.p.base === 'seclie') return 'SECLIENTE MC no se desmarca: se corrige abriéndolo otra vez.';
+  if(trmPagoNaBloqueado_(x) && /desde el inicio/.test(String(x.nota || ''))) return TRM_PAGO_NA_MOTIVO_;   // 17NOVV1 (#206 P2): bloqueado
   if(x.porSol) return 'Se marca solo al marcar ENVÍO SOLICITUD: desmarca ese paso.';
   if(x.origen && !x.rec) return 'Viene del checklist anterior; no tiene registro que desmarcar.';
   if(x.p.auto && !x.rec) return `Se marca solo por los datos (${TRM_PASO_AUTO_TXT_[x.p.base] || 'automático'}).`;
@@ -1655,35 +1733,17 @@ function trmDiasEntre_(a, b){
   const d0 = new Date(a.getFullYear(), a.getMonth(), a.getDate()), d1 = new Date(b.getFullYear(), b.getMonth(), b.getDate());
   return Math.round((d1 - d0) / 86400000);
 }
-// 17NOVV1 (2026-11-17, a petición de César, #209): mismas reglas que el escritorio. IMEI/ICCID, Facturada, Contrato firmado,
-// Renovación aplicada y Equipos solicitados (R) pasan a espera; en masivos Facturada y Renovación aplicada siguen siendo nuestra acción.
 const DASH_TAB_NUESTROS_ = ['sol', 'seclie', 'actenv', 'recol', 'entreg', 'contr', 'exparm', 'expent'];
 function dashTabLado_(x, masivo){
   const b = x.p.base;
   if(b === 'cot' || (b === 'eqsol' && x.tipo === 'N')) return null;   // se marcan solos
-  if(b === 'eqsol' && x.tipo === 'R') return 'espera';
+  if(b === 'eqsol' && x.tipo === 'R') return 'espera';   // 17NOVV1 (#209)
   if(b === 'act') return masivo ? 'nuestra' : 'espera';   // masivo: se carga el reporte / confirmación
-  if(b === 'fact' || b === 'conf') return masivo ? 'nuestra' : 'espera';
+  if(b === 'fact' || b === 'conf') return masivo ? 'nuestra' : 'espera';   // 17NOVV1 (#209 P12 B)
   return DASH_TAB_NUESTROS_.includes(b) ? 'nuestra' : 'espera';
 }
 function dashTabFecha_(v){ if(!v) return null; if(v instanceof Date) return isNaN(v) ? null : v; const f = trmFechaDe_(v); if(f) return f; const d = new Date(v); return isNaN(d) ? null : d; }
 function dashTabQuien_(nombre){ const n = clientesNormalizaTexto(nombre || ''); return /CESAR/i.test(n) ? 'cesar' : /LUCERO/i.test(n) ? 'lucero' : ''; }
-/* 18NOVV1 (2026-11-18, a petición de César, #212, caso CASA PACKING N031126-0036): «marca con una acción pendiente de nosotros para revisar
-   factura, pero esos pasos ya están marcados». P16 B: un correo de Telcel pendiente NO cuenta como acción nuestra si su paso (AUTORIZADA = aut,
-   RENOVACION = conf, FACTURA = fact, ESCALADA = escal) ya está marcado o en NO APLICA en todas las listas del trámite y el correo es del mismo
-   día o anterior a la marca. Un correo POSTERIOR a la marca (p. ej. factura corregida) sigue contando. El correo no se borra ni cambia de
-   estado: sigue como «Correo adicional» en el paso, en «Correos de Telcel» y en la campana. */
-const DASH_TAB_CORREO_PASO_ = { AUTORIZADA: 'aut', RENOVACION: 'conf', FACTURA: 'fact', ESCALADA: 'escal' };
-function dashTabCorreoCuenta_(c, P){
-  const base = DASH_TAB_CORREO_PASO_[String(c.TIPO || '').trim().toUpperCase()]; if(!base) return true;
-  const pasos = P.lista.filter(y=> y.p.base === base); if(!pasos.length) return true;
-  if(pasos.some(y=> !y.hecho && !y.na)) return true;   // su paso sigue pendiente en alguna lista
-  const dia = d=> d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : null;
-  const marcas = pasos.map(y=> dia(trmFechaDe_(y.fecha))).filter(v=> v != null);
-  const fC = dia(trmFechaDe_(c['FECHA CORREO']));
-  if(!marcas.length || fC == null) return true;   // sin fechas para comparar: cuenta como antes
-  return fC > Math.max(...marcas);
-}
 function dashTabModelo_(){
   const hoy = new Date(), out = [];
   (TRAMITES_DATA || []).forEach(t=>{
@@ -1694,7 +1754,9 @@ function dashTabModelo_(){
     const pend = cons.filter(x=> !x.hecho && !x.na);
     if(!pend.length) return;
     // siguiente paso de cada checklist (Nuevas / Renovación); si alguno es nuestro, manda ese
-    // 17NOVV1 (#209 P13 B + P14 A): con AUTORIZADA marcada cuenta el primer pendiente NUESTRO; antes, el siguiente pendiente.
+    // 17NOVV1 (2026-11-17, a petición de César, #209 P13 B + P14 A): con AUTORIZADA ya marcada en esa lista, cuenta el primer paso
+    // pendiente NUESTRO aunque antes haya uno en espera (Facturada, Factura pagada, Contrato firmado…); antes de Autorizada decide
+    // solo el siguiente paso pendiente (regla de siempre).
     const sig = P.listas.map(l=>{
       const pendL = l.lista.filter(x=> dashTabLado_(x, masivo) && !x.hecho && !x.na);
       const aut = l.lista.find(x=> x.p.base === 'aut');
@@ -1834,8 +1896,8 @@ function trmAutAnalizarTexto_(t, texto){
   if(!d.folioTrm && d.cliente && !trmMismoCliente_(t.CLIENTE, d.cliente) && !trmMismoCliente_(r.razon, d.cliente)) avisos.push(`el asunto es de "${d.cliente}" y el trámite de "${r.razon || t.CLIENTE}"`);
   if(d.cantidad && d.cantidad !== lineas.length) avisos.push(`el asunto dice ${d.cantidad} línea(s) y el trámite tiene ${lineas.length} línea(s) nuevas`);
   if(d.renglones.length && d.renglones.length !== lineas.length) avisos.push(`llegaron ${d.renglones.length} renglón(es) para ${lineas.length} línea(s)`);
-  const enMaster = new Map();
-  POS_ROWS.forEach(f=>{ if(lineas.some(x=> x.fila === f)) return; ['IMEI', 'ICCID'].forEach(c=>{ const v = String(f[COL_IDX[c]] == null ? '' : f[COL_IDX[c]]).replace(/\D/g, ''); if(v.length >= 15) enMaster.set(v, f); }); });
+  const enMaster = new Map(), enCancel = new Map(), canceladas = nexusFilasCanceladas_();   // 17NOVV1 (#201): canceladas aparte, sin aviso
+  POS_ROWS.forEach(f=>{ if(lineas.some(x=> x.fila === f)) return; const dest = canceladas.has(f) ? enCancel : enMaster; ['IMEI', 'ICCID'].forEach(c=>{ const v = String(f[COL_IDX[c]] == null ? '' : f[COL_IDX[c]]).replace(/\D/g, ''); if(v.length >= 15) dest.set(v, f); }); });
   d.filas = lineas.map((x, i)=>{
     const g = d.renglones[i] || null, req = trmSerieReq_(x);
     const o = { x, g, fol: trmFolDe_(x), modelo: nexusMarcaModelo_(x.fila[COL_IDX['MARCA']], x.fila[COL_IDX['MODELO']]), errores: [], avisos: [], valores: {} };
@@ -1851,6 +1913,7 @@ function trmAutAnalizarTexto_(t, texto){
       if(real && actual.replace(/\s/g, '').toUpperCase() !== String(o.valores[c]).toUpperCase()) o.avisos.push(`${c} cambia: ${actual} → ${o.valores[c]}`);
       const otra = enMaster.get(String(o.valores[c]).replace(/\D/g, ''));
       if(otra) o.avisos.push(`${c} ya está en Master: FOL ${otra[COL_IDX['FOL']]} (${otra[COL_IDX['CLIENTE']]})`);
+      else { const can = enCancel.get(String(o.valores[c]).replace(/\D/g, '')); if(can) (o.notas = o.notas || []).push(`${c} estuvo en FOL ${can[COL_IDX['FOL']]} (cancelada)`); }   // 17NOVV1 (#201)
     });
     if(g.region){ const actual = COL_IDX['REGIÓN'] != null ? String(x.fila[COL_IDX['REGIÓN']] || '').trim().toUpperCase() : ''; if(actual !== g.region){ o.region = g.region; if(actual) o.avisos.push(`región ${actual} → ${g.region} (la del ICCID)`); } }
     return o;
@@ -1878,6 +1941,271 @@ async function trmAutAplicar_(t, d, fechaPaso, messageId, faltan, extraNota){
     else await trmPasosEnviar_([{ folioTramite: t['FOLIO TRAMITE'], paso:'nota', accion:'NOTA', etiqueta: 'Autorización de Telcel cargada otra vez: ' + nota }]);
     return nota;
   }
+}
+const DASH_TAB_CORREO_PASO_ = { AUTORIZADA: 'aut', RENOVACION: 'conf', FACTURA: 'fact', ESCALADA: 'escal' };
+function dashTabCorreoCuenta_(c, P){
+  const base = DASH_TAB_CORREO_PASO_[String(c.TIPO || '').trim().toUpperCase()]; if(!base) return true;
+  const pasos = P.lista.filter(y=> y.p.base === base); if(!pasos.length) return true;
+  if(pasos.some(y=> !y.hecho && !y.na)) return true;   // su paso sigue pendiente en alguna lista
+  const dia = d=> d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : null;
+  const marcas = pasos.map(y=> dia(trmFechaDe_(y.fecha))).filter(v=> v != null);
+  const fC = dia(trmFechaDe_(c['FECHA CORREO']));
+  if(!marcas.length || fC == null) return true;   // sin fechas para comparar: cuenta como antes
+  return fC > Math.max(...marcas);
+}
+const TRM_PAGO_NA_NOTA_ = 'AUTOMÁTICO (flujo): NO APLICA · sin pago: ';
+function trmPagoNaBloqueado_(x){ return !!(x && x.p && x.p.base === 'pago' && x.na && String(x.nota || '').indexOf(TRM_PAGO_NA_NOTA_) === 0); }
+const TRM_PAGO_NA_MOTIVO_ = 'Bloqueado: pago inicial $0 desde el inicio (NO APLICA automático). Si es un error, se corrige en la hoja.';
+function nexusFilasCanceladas_(){
+  const s = new Set();
+  (POS_ROWS || []).forEach(f=>{ if(COL_IDX['ET'] != null && String(f[COL_IDX['ET']] == null ? '' : f[COL_IDX['ET']]).trim().toUpperCase() === 'C') s.add(f); });
+  (TRAMITES_DATA || []).forEach(t=>{
+    let est = ''; try{ est = trmEstatusActual_(t); }catch(e){}
+    if(est === 'CANCELADO') (trmVinculos.get(t['FOLIO TRAMITE']) || []).forEach(v=>{ if(v && v.fila) s.add(v.fila); });
+  });
+  return s;
+}
+function trmActDig_(v){ return String(v == null ? '' : v).replace(/\D/g, ''); }
+function trmLineaForzosa_(x){
+  const pl = x && x.fila ? x.fila[COL_IDX['PL']] : (x && x.l ? x.l.PL : '');
+  return Number(String(pl == null ? '' : pl).replace(/[^\d.]/g, '')) > 0;
+}
+function trmMontoNum_(v){ const s = String(v == null ? '' : v).replace(/[$,\s]/g, ''); return s === '' || s === '-' ? 0 : (Number(s) || 0); }
+function trmEngancheCapturado_(x){
+  if(COL_IDX['ENGANCHE'] == null) return null;
+  const s = String(x.fila[COL_IDX['ENGANCHE']] == null ? '' : x.fila[COL_IDX['ENGANCHE']]).replace(/[$,\s]/g, '');
+  if(s === '') return null;
+  return s === '-' ? 0 : (isNaN(Number(s)) ? null : Number(s));
+}
+function trmPagoNoAplica_(r, tipo, facturas){
+  const vivas = trmLineasDe_(r, tipo);
+  if(!vivas.length || !Array.isArray(facturas)) return '';
+  const eng = vivas.map(trmEngancheCapturado_);
+  if(eng.some(v=> v === null || v !== 0)) return '';
+  if(facturas.some(f=> /PAGO INICIAL/i.test(String(f.TIPO || '')) && trmMontoNum_(f.TOTAL) > 0)) return '';
+  return 'enganche $0 · ENGANCHE de las líneas: ' + eng.join(', ') + ' · ' + facturas.length + ' factura(s) sin pago inicial';   // #112 punto 4: la regla queda escrita
+}
+function trmRenLeer_(texto){
+  const t = String(texto || '');
+  const asunto = ((t.match(/^\s*(?:Asunto|Subject)\s*:\s*(.+)$/im) || [])[1] || (t.match(/.*Ticket#.*/i) || [''])[0]).trim();
+  const ticket = (t.match(/Ticket#\s*(\d+)/i) || [])[1] || '';
+  const cliente = ((asunto.match(/RENOVACI[ÓO]N\s*-\s*(.+?)\s*\/\s*\d+\s*L[ÍI]NEAS/i) || [])[1] || '').trim();
+  const cantidad = Number((asunto.match(/\/\s*(\d+)\s*L[ÍI]NEAS/i) || [])[1]) || null;
+  // 17NOVV1 (2026-11-17, a petición de César, #197): el párrafo también viene como «…para las líneas X y Y con folios A y B» (con o sin
+  // «de renovación»). Si no hay párrafo, se lee solo el mensaje de arriba (se corta en la respuesta citada: «escribió:», el segundo
+  // «De:/From:», «-----Original», líneas con «>») y se quita la firma (Tel., Cel., Móvil).
+  const parrafo = (t.match(/l[íi]nea\(?s?\)?\s+([\s\S]*?)\s+(?:y|con)\s+(?:los\s+)?folios?(?:\s+de\s+renovaci[óo]n)?\s+([\s\S]*?)(?:\.\s|\.$|\n)/i) || []);
+  let lineas = parrafo[1] ? (parrafo[1].match(/\b\d{10}\b/g) || []) : [];
+  let folios = parrafo[2] ? (parrafo[2].match(/\b[A-Z]{2,5}\d{4,}\b/g) || []) : [];
+  const arriba = (()=>{
+    const L = t.split(/\r?\n/); let nDe = 0, fin = L.length;
+    for(let i = 0; i < L.length; i++){
+      const s = L[i];
+      if(/^\s*(?:De|From)\s*:/i.test(s) && ++nDe > 1){ fin = i; break; }
+      if(/escribi[óo]\s*:\s*$|wrote\s*:\s*$/i.test(s) || /^\s*>/.test(s) || /^\s*-{3,}\s*(?:Original|Mensaje original)/i.test(s)){ fin = i; break; }
+    }
+    return L.slice(0, fin).join('\n');
+  })();
+  if(!lineas.length) lineas = (arriba.replace(/(?:Tels?|Cel(?:ular)?|M[óo]vil|Oficina)\.?[^\n]*/gi, '').match(/\b\d{10}\b/g) || []);
+  if(!folios.length) folios = (arriba.match(/\bCCE\d{4,}\b/g) || []);
+  if(!folios.length) folios = (t.match(/\bCCE\d{4,}\b/g) || []);
+  // 09OCTV4 (2026-10-09, a petición de César, correo de 3CON: "folios CCE612364 - CCE612394"): los folios pueden venir como
+  // rango de un consecutivo; se abre en todos los folios del rango (CCE612364, CCE612365 ... CCE612394).
+  const rango = /\b([A-Z]{2,5})(\d{4,})\s*(?:-|–|—|al|a)\s*(?:\1)?(\d{4,})\b/i.exec(parrafo[2] || t);
+  if(rango && folios.length <= 2){
+    const pre = rango[1].toUpperCase(), a = Number(rango[2]), b = Number(rango[3]), ancho = rango[2].length;
+    if(b > a && b - a < 1000){ folios = []; for(let x = a; x <= b; x++) folios.push(pre + String(x).padStart(ancho, '0')); }
+  }
+  return { asunto, ticket, cliente, cantidad, lineas: Array.from(new Set(lineas)), folios, fecha: trmRenFechaDeTexto_(t) };
+}
+function trmRenAnalizarTexto_(texto, trmRenSoloTramite){
+  const d = trmRenLeer_(texto);
+  const iFol = COL_IDX['FOL'], iNum = COL_IDX['NUMERO'], iTR = COL_IDX['TR'], iET = COL_IDX['ET'], iCli = COL_IDX['CLIENTE'], iIni = COL_IDX['INICIO'];
+  trmVincular_();
+  const tramiteDe = new Map();
+  TRAMITES_DATA.forEach(t=> (trmVinculos.get(t['FOLIO TRAMITE']) || []).forEach(v=>{ if(v.fila) tramiteDe.set(v.fila, t['FOLIO TRAMITE']); }));
+  // 17NOVV1 (2026-11-17, a petición de César, #197): «se cotejan solo cantidad de líneas vs folios, cualquier número telefónico adicional
+  // ajeno al trámite se descarta». Los números que no son renovación (TR = R, sin cancelar) de un trámite abierto —o, abierta desde un
+  // trámite, de ESE trámite— se quitan sin mostrarse (firma, cuentas, otros). Si no queda ninguno, se toman las del trámite (regla 09OCTV4).
+  { const abiertos = new Set(TRAMITES_DATA.filter(t=>{ const e = trmEstatusActual_(t); return e !== 'CANCELADO' && e !== 'COMPLETADA'; }).map(t=> t['FOLIO TRAMITE']));
+    const esDelTramite = num=> POS_ROWS.some(r=> trmActDig_(r[iNum]) === num && String(r[iTR] || '').trim().toUpperCase() === 'R' && String(r[iET] || '').trim().toUpperCase() !== 'C'
+      && (trmRenSoloTramite ? tramiteDe.get(r) === trmRenSoloTramite : abiertos.has(tramiteDe.get(r))));
+    d.lineas = d.lineas.filter(esDelTramite); }
+  // 09OCTV4: el correo no trae los números (solo "las 31 líneas con folios CCE... - CCE..."): se toman las renovaciones
+  // (TR = R, sin cancelar y sin fecha oficial) de los trámites abiertos de ese cliente, en orden de FOL; el folio de
+  // renovación se asigna en ese mismo orden.
+  d.porTramite = false;
+  // 09OCTV5: abierta desde el detalle de un trámite, las líneas se toman solo de ese trámite (aunque no se lea el cliente).
+  if(!d.lineas.length && (d.cliente || trmRenSoloTramite)){
+    const filasR = [];
+    // El asunto trae la razón social ("3CON INTERNATIONAL SA DE CV") y el trámite el nombre corto ("3CON").
+    const esCli = c=> trmMismoCliente_(c, d.cliente) || trmMismoCliente_(nombreClienteCompleto(trmClienteCorto_(c)), d.cliente);
+    const delCliente = t=> esCli(t.CLIENTE) || (trmVinculos.get(t['FOLIO TRAMITE']) || []).some(v=> v.fila && esCli(v.fila[iCli]));
+    TRAMITES_DATA.filter(t=> trmEstatusActual_(t) !== 'CANCELADO' && (trmRenSoloTramite ? t['FOLIO TRAMITE'] === trmRenSoloTramite : delCliente(t)))
+      .forEach(t=> (trmVinculos.get(t['FOLIO TRAMITE']) || []).forEach(v=>{
+        const r = v.fila;
+        if(!r || filasR.includes(r)) return;
+        if(String(r[iTR] || '').trim().toUpperCase() !== 'R' || String(r[iET] || '').trim().toUpperCase() === 'C') return;
+        if(TRM_ACTIVACIONES.has(String(r[iFol]).trim())) return;
+        filasR.push(r);
+      }));
+    filasR.sort((a, b)=> (Number(a[iFol]) || 0) - (Number(b[iFol]) || 0));
+    // 18OCTV5 (2026-10-18, a petición de César, F19): al asignar por orden, los folios van de menor a mayor y deben ser tantos
+    // como líneas (o uno solo para todas); si no cuadran, no se asigna ninguno.
+    d.folios = d.folios.slice().sort((a, b)=> (Number(String(a).replace(/\D/g, '')) || 0) - (Number(String(b).replace(/\D/g, '')) || 0) || String(a).localeCompare(String(b)));
+    const noCuadra = d.folios.length > 1 && d.folios.length !== filasR.length;
+    if(filasR.length){
+      d.porTramite = true;
+      d.lineas = filasR.map(r=> trmActDig_(r[iNum]) || '');
+      d.filas = filasR.map((r, i)=>{
+        const x = { numero: trmActDig_(r[iNum]) || '', folioRen: d.folios.length === filasR.length ? d.folios[i] : (d.folios.length === 1 ? d.folios[0] : ''),
+          errores: [], avisos: [], fila: r, fol: String(r[iFol]).trim(), cliente: r[iCli], tramite: tramiteDe.get(r) || '', inicioAntes: r[iIni] };
+        if(noCuadra){ x.folioRen = ''; x.errores.push(`el correo trae ${d.folios.length} folio(s) para ${filasR.length} línea(s): no cuadran`); }
+        else if(!x.folioRen) x.avisos.push('sin folio de renovación');
+        x.ok = !x.errores.length;
+        return x;
+      });
+    }
+  }
+  // 17NOVV1 (#197): el folio se liga en el orden en que el correo nombra las líneas; si la cantidad de folios no cuadra con la de líneas
+  // (y no es un solo folio para todas), no se asigna ninguno y se avisa.
+  const noCuadraL = !d.porTramite && d.folios.length > 1 && d.folios.length !== d.lineas.length;
+  if(!d.porTramite) d.filas = d.lineas.map((num, i)=>{
+    const x = { numero: num, folioRen: noCuadraL ? '' : (d.folios.length === d.lineas.length ? d.folios[i] : (d.folios.length === 1 ? d.folios[0] : '')), errores: [], avisos: [] };
+    if(noCuadraL) x.errores.push(`el correo trae ${d.folios.length} folio(s) para ${d.lineas.length} línea(s): no cuadran`);
+    const cands = POS_ROWS.filter(r=> trmActDig_(r[iNum]) === num && String(r[iET] || '').trim().toUpperCase() !== 'C')
+      .sort((a, b)=> (Number(b[iFol]) || 0) - (Number(a[iFol]) || 0));
+    // 17NOVV1 (#197): abierta desde un trámite, la renovación debe ser de ese trámite
+    const renov = cands.filter(r=> String(r[iTR] || '').trim().toUpperCase() === 'R' && (!trmRenSoloTramite || tramiteDe.get(r) === trmRenSoloTramite));
+    if(!cands.length) x.errores.push('la línea no está en Panel Master');
+    else if(!renov.length) x.errores.push('la línea está en Master pero no como renovación (TR = R)');
+    else {
+      x.fila = renov[0];
+      x.fol = String(x.fila[iFol]).trim();
+      x.cliente = x.fila[iCli];
+      x.tramite = tramiteDe.get(x.fila) || '';
+      x.inicioAntes = x.fila[iIni];
+      if(!x.tramite) x.avisos.push('la línea todavía no pertenece a un trámite');
+      if(d.cliente && !trmMismoCliente_(x.cliente, d.cliente) && !trmMismoCliente_(nombreClienteCompleto(trmClienteCorto_(x.cliente)), d.cliente)) x.avisos.push('el cliente del correo es ' + d.cliente);
+      const ya = TRM_ACTIVACIONES.get(x.fol);
+      if(ya){ x.duplicado = true; x.errores.unshift('el FOL ' + x.fol + ' ya tiene registro: se descarta'); }
+    }
+    if(!x.folioRen && !noCuadraL) x.avisos.push('sin folio de renovación');
+    x.ok = !x.errores.length;
+    return x;
+  });
+  return d;
+}
+async function trmRenEnviar_(d, sel, fecha, texto){
+  const resp = await fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ action:'cargarReporteActivacion', columnas: ['TIPO', 'TICKET', 'FOLIO RENOVACION', 'FECHA CORREO', 'ASUNTO', 'TEXTO CORREO'],
+      usuario: (USERS_DB[CURRENT_USER_KEY] || {}).displayName || CURRENT_USER_KEY || '',
+      filas: sel.map(x=> ({ fol: x.fol, folioTramite: x.tramite, numero: x.numero, cuenta: '', fechaAceptacion: fecha.slice(0, 10), aplicarMaster: true,
+        reporte: { 'TIPO':'RENOVACIÓN', 'TICKET': d.ticket, 'FOLIO RENOVACION': x.folioRen, 'FECHA CORREO': fecha, 'ASUNTO': d.asunto, 'TEXTO CORREO': texto.slice(0, 20000) } })) }) });
+  const data = await resp.json();
+  if(!data || data.ok !== true) throw new Error((data && data.error) || 'El servidor no confirmó la carga.');
+  return data;
+}
+const FAC_TIPOS_ = { M15: 'CHIP', M69: 'ARRENDAMIENTO', M73: 'PAGO INICIAL', M14: 'VENTA DIRECTA' };
+function facNum_(s){ const n = Number(String(s == null ? '' : s).replace(/[$,\s]/g, '')); return Number.isFinite(n) ? Math.round(n * 100) / 100 : null; }
+function facParsear_(lineas, archivo, items){
+  const L = lineas.map(l=> String(l).replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const t = L.join('\n');
+  const f = { archivo: archivo || '', avisos: [] };
+  const mDoc = /^(\d{10}) (\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2})? \d{10,} (\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/m.exec(t);
+  if(mDoc){ f.DOCUMENTO = mDoc[1]; f['FECHA EXPEDICION'] = `${mDoc[9]}/${mDoc[8]}/${mDoc[7]} ${mDoc[10]}:${mDoc[11]}`; }
+  else { const d = /\b(81\d{8})\b/.exec(t); if(d) f.DOCUMENTO = d[1]; }
+  const mMot = /\b(M\d{2})\s*-\s*([^\n]+)/.exec(t);
+  if(mMot){ f.MOTIVO = mMot[1] + ' - ' + mMot[2].trim(); f.TIPO = FAC_TIPOS_[mMot[1]] || 'OTRO'; }
+  const mRfc = /CODIGO:\s*\S+\s+R\.F\.C\s+([A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3})/i.exec(t);
+  if(mRfc) f.RFC = mRfc[1].toUpperCase();
+  const mPl = /\b(\d{1,2})\s+MESES\s+ARRENDAMIENTO/i.exec(t);
+  if(mPl) f.PLAZO = Number(mPl[1]);
+  f.ICCID = Array.from(new Set(t.match(/\b8952\d{15,16}\b/g) || []));
+  // Resumen (página 2): etiqueta en un renglón y el importe en el siguiente renglón que empieza con "$".
+  const valorTras = re=>{
+    const its = items || [];
+    const lab = its.filter(i=> re.test(String(i.s).trim())).pop();   // la última (página del resumen)
+    if(!lab) return null;
+    const nums = its.filter(i=> i.p === lab.p && i.x > lab.x + 40 && i.y <= lab.y + 2 && i.y >= lab.y - 12 && /^[\d,]+\.\d{2}$/.test(String(i.s).trim()))
+      .sort((a, b)=> Math.abs(lab.y - a.y) - Math.abs(lab.y - b.y));
+    return nums.length ? facNum_(nums[0].s) : null;
+  };
+  f.SUBTOTAL = valorTras(/^SUBTOTAL$/i); f.DESCUENTO = valorTras(/^DESCUENTO$/i); f.BASE = valorTras(/^BASE$/i);
+  f.IVA = valorTras(/^I\.?V\.?A\b/i); f.TOTAL = valorTras(/^TOTAL$/i);
+  const mFol = /FOLIO\s+(\d{5,})/i.exec(L.filter(l=> /MARISOL|FAC REF|ARRENDA|PAGO INI|FOLIO \d/i.test(l) && !/FOLIO FISCAL/i.test(l)).join(' '));
+  if(mFol) f.FOLIO = mFol[1];
+  const mRef = /(?:FAC REF|FACTURA)\s+(81\d{8})/i.exec(t);
+  if(mRef && mRef[1] !== f.DOCUMENTO) f.REFERENCIA = mRef[1];
+  if(!f.DOCUMENTO) f.avisos.push('no encontré el número de factura (DOCUMENTO)');
+  if(!f.TIPO) f.avisos.push('no encontré el MOTIVO (tipo de factura)');
+  if(f.TOTAL == null) f.avisos.push('no encontré el TOTAL');
+  return f;
+}
+const FAC_TOLERANCIA_ = 1;
+async function facLeerPdf_(bytes, nombre){
+  await cargarLibreria_('pdfjs');
+  const doc = await pdfjsLib.getDocument({ data: bytes }).promise;
+  const lineas = [], todos = [];
+  for(let p = 1; p <= doc.numPages; p++){
+    const tc = await (await doc.getPage(p)).getTextContent();
+    const items = tc.items.filter(i=> String(i.str).trim()).map(i=> ({ p, x: i.transform[4], y: i.transform[5], s: i.str }));
+    todos.push(...items);
+    const orden = items.slice().sort((a, b)=> b.y - a.y || a.x - b.x), filas = [];
+    orden.forEach(it=>{ const r = filas.find(f=> Math.abs(f.y - it.y) <= 2.5); if(r) r.it.push(it); else filas.push({ y: it.y, it: [it] }); });
+    filas.sort((a, b)=> b.y - a.y).forEach(r=>{ r.it.sort((a, b)=> a.x - b.x); lineas.push(r.it.map(i=> i.s).join(' ')); });
+  }
+  return facParsear_(lineas, nombre, todos);
+}
+function facComparar_(t, tipo, facturas, sinChip){   // 28OCTV1 (#128): sinChip = SIM CARD DAT, no se compara el chip
+  const r = trmResumen_(t), lineas = trmLineasDe_(r, tipo);
+  const val = (x, c)=> Number(String(x.fila[COL_IDX[c]] == null ? '' : x.fila[COL_IDX[c]]).replace(/[$,\s]/g, '')) || 0;
+  const conEquipo = lineas.filter(x=>{ const m = String(x.fila[COL_IDX['MODELO']] || '').trim().toUpperCase(); return trmLineaForzosa_(x) && m && !['-', 'NA', 'LIBRE', 'BOLSA'].includes(m); });
+  const suma = (tp, c)=> facturas.filter(f=> f.TIPO === tp).reduce((a, f)=> a + (Number(f[c]) || 0), 0);
+  const filas = [], avisos = [];
+  [['ARRENDAMIENTO', 'A FIN'], ['PAGO INICIAL', 'ENGANCHE']].forEach(([tp, col])=>{
+    const esperado = Math.round(conEquipo.reduce((a, x)=> a + val(x, col), 0) * 100) / 100;
+    const n = facturas.filter(f=> f.TIPO === tp).length;
+    if(!esperado && !n) return;   // libre / pago inicial en $0: no hay factura de ese tipo (P64)
+    const total = Math.round(suma(tp, 'TOTAL') * 100) / 100, base = Math.round(suma(tp, 'BASE') * 100) / 100;
+    // en la misma base que la cotización: total con IVA o base, la que coincida (P81)
+    const usaBase = Math.abs(base - esperado) <= FAC_TOLERANCIA_ && Math.abs(total - esperado) > FAC_TOLERANCIA_;
+    const facturado = usaBase ? base : total, dif = Math.round((facturado - esperado) * 100) / 100;
+    const ok = n > 0 && Math.abs(dif) <= FAC_TOLERANCIA_;
+    filas.push({ tipo: tp, esperado, facturado, dif, ok, n, nota: n ? (usaBase ? 'comparado sin IVA' : 'total con IVA') + ` · ${n} factura(s)` : 'falta la factura' });
+  });
+  // Chip: ICCID facturados contra las líneas (sin eSIM)
+  const iccidLineas = new Set(lineas.map(x=> String(x.fila[COL_IDX['ICCID']] || '').replace(/\D/g, '')).filter(v=> /^8952\d{15,16}$/.test(v)));
+  const iccidFact = new Set(facturas.filter(f=> f.TIPO === 'CHIP').flatMap(f=> f.ICCID || []));
+  if(!sinChip && (iccidLineas.size || iccidFact.size)){
+    const faltan = [...iccidLineas].filter(v=> !iccidFact.has(v)), sobran = [...iccidFact].filter(v=> !iccidLineas.has(v));
+    filas.push({ tipo: 'CHIP', esperado: iccidLineas.size, facturado: iccidFact.size, dif: iccidFact.size - iccidLineas.size, ok: !faltan.length && !sobran.length && iccidFact.size > 0, n: facturas.filter(f=> f.TIPO === 'CHIP').length, iccid: true,
+      nota: (faltan.length ? `${faltan.length} ICCID de las líneas no vienen en la factura (${faltan.slice(0, 3).join(', ')}${faltan.length > 3 ? '…' : ''})` : '') + (sobran.length ? `${faltan.length ? ' · ' : ''}${sobran.length} ICCID de la factura no son del trámite` : '') || 'los ICCID coinciden' });
+  }
+  const cli = trmSolCliente_(t), rfc = cli ? String(cfFieldValue(cli, 'RFC') || '').trim().toUpperCase() : '';
+  facturas.forEach(f=>{ if(f.RFC && rfc && f.RFC !== rfc) avisos.push(`${f.DOCUMENTO}: RFC ${f.RFC} no es el del cliente (${rfc})`); });
+  const plazos = new Set(conEquipo.map(x=> val(x, 'PL')).filter(Boolean));
+  facturas.filter(f=> f.TIPO === 'ARRENDAMIENTO' && f.PLAZO).forEach(f=>{ if(plazos.size && !plazos.has(f.PLAZO)) avisos.push(`${f.DOCUMENTO}: plazo ${f.PLAZO} meses y las líneas son de ${[...plazos].join('/')} meses`); });
+  const docs = facturas.map(f=> f.DOCUMENTO).filter(Boolean);
+  docs.filter((d, i)=> docs.indexOf(d) !== i).forEach(d=> avisos.push(`la factura ${d} viene repetida`));
+  facturas.forEach(f=> (f.avisos || []).forEach(a=> avisos.push(`${f.archivo}: ${a}`)));
+  return { filas, avisos, todoOk: filas.length > 0 && filas.every(x=> x.ok) && !avisos.length };
+}
+async function trmFactAplicar_(t, tipo, facturas, correos, fechaPaso, c, malos, faltan, extraNota){
+  const r = trmResumen_(t), P = trmPasos_(t, r), x = P.lista.find(y=> y.p.id === (tipo === 'R' ? 'r.fact' : 'n.fact')); if(!x) throw new Error('el trámite no tiene el paso FACTURADA');
+  const filas = facturas.map(f=> ({ TIPO: f.TIPO, MOTIVO: f.MOTIVO, DOCUMENTO: f.DOCUMENTO, 'FECHA EXPEDICION': f['FECHA EXPEDICION'], SUBTOTAL: f.SUBTOTAL, DESCUENTO: f.DESCUENTO, IVA: f.IVA, TOTAL: f.TOTAL,
+    FOLIO: f.FOLIO, RFC: f.RFC, PLAZO: f.PLAZO || '', ICCID: (f.ICCID || []).join(' '), ARCHIVO: f.archivo }));
+  const g = await fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'guardarFacturasTramite', folioTramite: t['FOLIO TRAMITE'], facturas: filas, usuario: trmUsuario_() }) }).then(y=> y.json());
+  if(!g || g.ok !== true) throw new Error((g && g.error) || 'el servidor no guardó las facturas');
+  const mon = v=> '$' + Number(v || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const nota = [correos.length ? trmCorreoNotaAuto_(correos[0]) : '', extraNota, faltan.length ? 'sin pasos previos: ' + faltan.join(', ') : '', facturas.filter(f=> f.TIPO !== 'SIM CARD DAT').map(f=> `${f.TIPO} ${f.DOCUMENTO} ${mon(f.TOTAL)}`).join(' · '), facturas[0].FOLIO ? 'FOLIO ' + facturas[0].FOLIO : '', c.todoOk ? 'montos validados' : '⚠ ' + malos.join('; ')].filter(Boolean).join(' · ');
+  if(!x.hecho) await trmPasosEnviar_([trmPasoItem_(t, r, P, x, fechaPaso, nota, { messageId: correos[0] || '' })]);   // 25OCTV2: + CORREO
+  else await trmPasosEnviar_([{ folioTramite: t['FOLIO TRAMITE'], paso:'nota', accion:'NOTA', etiqueta: 'Facturas cargadas otra vez: ' + nota }]);
+  // 21OCTV7 (#46): sin pago (líneas libres / enganche $0) FACTURA PAGADA queda en NO APLICA en automático.
+  { const motivo = trmPagoNoAplica_(r, x.tipo, facturas);
+    const r2 = trmResumen_(t), P2 = trmPasos_(t, r2), xp = P2.lista.find(y=> y.p.id === (x.tipo === 'R' ? 'r.pago' : 'n.pago'));
+    if(motivo && xp && !xp.hecho) await trmPasosEnviar_([trmPasoItem_(t, r2, P2, xp, fechaPaso, TRM_PAGO_NA_NOTA_ + motivo, { accion:'NO APLICA' })]); }
+  return g;
 }
 /* ===== FIN REGLAS DE PASOS ===== */
 
@@ -2787,6 +3115,28 @@ document.addEventListener('click', e=>{
   const u = e.target.closest('#ov-reporte [data-rpu]'); if(u){ REP_M_.usuario = u.dataset.rpu; repPintarMovil_(); }
 });
 
+/* ---------- RENOVACIÓN APLICADA y FACTURA desde el móvil (18NOVV1-MOVIL, 2026-11-18, a petición de César, #162 P42 B) ----------
+   Adaptadores para las funciones del escritorio copiadas en REGLAS DE PASOS (trmRenAnalizarTexto_, trmRenEnviar_, facLeerPdf_,
+   facComparar_, trmFactAplicar_): vínculos trámite → filas de Master, cliente, y pdf.js bajo demanda (la misma versión del escritorio). */
+var trmVinculos = new Map();
+function trmVincular_(){ trmVinculos = new Map((DATA.trm || []).map(t=> [t['FOLIO TRAMITE'], trmLineas_(t).map(x=> ({ fila: x.fila }))])); }
+function nombreClienteCompleto(corto){ const c = clienteDeTexto_(corto); return c ? razonDe_(c) : (corto || ''); }
+function trmSolCliente_(t){ return trmCliente_(t); }
+function cfFieldValue(row, k){ return cfVal(row, k); }
+const LIBRERIAS_CDN_ = { pdfjs: { url:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', global:'pdfjsLib',
+  init: ()=>{ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } } };
+const _libreriasCargando_ = {};
+function cargarLibreria_(nombre){
+  const lib = LIBRERIAS_CDN_[nombre];
+  if(window[lib.global]) return Promise.resolve(window[lib.global]);
+  if(!_libreriasCargando_[nombre]) _libreriasCargando_[nombre] = new Promise((resolve, reject)=>{
+    const sc = document.createElement('script'); sc.src = lib.url;
+    sc.onload = ()=>{ if(lib.init) lib.init(); resolve(window[lib.global]); };
+    sc.onerror = ()=>{ delete _libreriasCargando_[nombre]; sc.remove(); reject(new Error('no se pudo cargar el lector de PDF (revisa la conexión)')); };
+    document.head.appendChild(sc);
+  });
+  return _libreriasCargando_[nombre];
+}
 /* ---------- AUTORIZADA de líneas nuevas desde el móvil (fase 2, P42) ---------- */
 // Adaptadores para usar las funciones del escritorio (trmAutLeer_, trmAutAnalizarTexto_, trmAutAplicar_) copiadas en REGLAS DE PASOS.
 try{ Object.defineProperty(window, 'POS_ROWS', { get: ()=> DATA.master.rows, configurable: true }); }catch(e){}
