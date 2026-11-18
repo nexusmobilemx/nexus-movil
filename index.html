@@ -659,7 +659,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
     return intentar(0);
   };
 })();
-const PANEL_VERSION = '17NOVV1-MOVIL';   // 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '18NOVV1-MOVIL';   // 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -1668,6 +1668,22 @@ function dashTabLado_(x, masivo){
 }
 function dashTabFecha_(v){ if(!v) return null; if(v instanceof Date) return isNaN(v) ? null : v; const f = trmFechaDe_(v); if(f) return f; const d = new Date(v); return isNaN(d) ? null : d; }
 function dashTabQuien_(nombre){ const n = clientesNormalizaTexto(nombre || ''); return /CESAR/i.test(n) ? 'cesar' : /LUCERO/i.test(n) ? 'lucero' : ''; }
+/* 18NOVV1 (2026-11-18, a petición de César, #212, caso CASA PACKING N031126-0036): «marca con una acción pendiente de nosotros para revisar
+   factura, pero esos pasos ya están marcados». P16 B: un correo de Telcel pendiente NO cuenta como acción nuestra si su paso (AUTORIZADA = aut,
+   RENOVACION = conf, FACTURA = fact, ESCALADA = escal) ya está marcado o en NO APLICA en todas las listas del trámite y el correo es del mismo
+   día o anterior a la marca. Un correo POSTERIOR a la marca (p. ej. factura corregida) sigue contando. El correo no se borra ni cambia de
+   estado: sigue como «Correo adicional» en el paso, en «Correos de Telcel» y en la campana. */
+const DASH_TAB_CORREO_PASO_ = { AUTORIZADA: 'aut', RENOVACION: 'conf', FACTURA: 'fact', ESCALADA: 'escal' };
+function dashTabCorreoCuenta_(c, P){
+  const base = DASH_TAB_CORREO_PASO_[String(c.TIPO || '').trim().toUpperCase()]; if(!base) return true;
+  const pasos = P.lista.filter(y=> y.p.base === base); if(!pasos.length) return true;
+  if(pasos.some(y=> !y.hecho && !y.na)) return true;   // su paso sigue pendiente en alguna lista
+  const dia = d=> d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : null;
+  const marcas = pasos.map(y=> dia(trmFechaDe_(y.fecha))).filter(v=> v != null);
+  const fC = dia(trmFechaDe_(c['FECHA CORREO']));
+  if(!marcas.length || fC == null) return true;   // sin fechas para comparar: cuenta como antes
+  return fC > Math.max(...marcas);
+}
 function dashTabModelo_(){
   const hoy = new Date(), out = [];
   (TRAMITES_DATA || []).forEach(t=>{
@@ -1686,7 +1702,7 @@ function dashTabModelo_(){
       return pendL[0];
     }).filter(Boolean);
     const actual = sig.find(x=> dashTabLado_(x, masivo) === 'nuestra') || sig[0];
-    const correos = (TRM_CORREOS || []).filter(c=> c.ESTADO === 'PENDIENTE' && trmCorreoDelTramite_(c, folio));   // 06NOVV1 (#176): solo los ligados por número / ticket / a mano y del tipo del trámite
+    const correos = (TRM_CORREOS || []).filter(c=> c.ESTADO === 'PENDIENTE' && trmCorreoDelTramite_(c, folio) && dashTabCorreoCuenta_(c, P));   // 06NOVV1 (#176): solo los ligados por número / ticket / a mano y del tipo del trámite · 18NOVV1 (#212)
     const correo = correos[correos.length - 1] || null;
     const accion = dashTabLado_(actual, masivo) === 'nuestra' || !!correo;
     // último movimiento: el registro más reciente de sus pasos o el cambio de estatus
