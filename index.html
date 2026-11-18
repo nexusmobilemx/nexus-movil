@@ -659,7 +659,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
     return intentar(0);
   };
 })();
-const PANEL_VERSION = '18NOVV2-MOVIL';   // 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '19NOVV1-MOVIL';   // 19NOVV1-MOVIL (2026-11-19, #214): «Qué hago ahora» ya no cuenta como mi acción un paso nuestro que espera un paso previo (reglas copiadas del escritorio 19NOVV1) · 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -1757,16 +1757,22 @@ function dashTabModelo_(){
     // 17NOVV1 (2026-11-17, a petición de César, #209 P13 B + P14 A): con AUTORIZADA ya marcada en esa lista, cuenta el primer paso
     // pendiente NUESTRO aunque antes haya uno en espera (Facturada, Factura pagada, Contrato firmado…); antes de Autorizada decide
     // solo el siguiente paso pendiente (regla de siempre).
+    const bloq = new Set();   // 19NOVV1 (#214): pasos nuestros que esperan un paso previo
     const sig = P.listas.map(l=>{
       const pendL = l.lista.filter(x=> dashTabLado_(x, masivo) && !x.hecho && !x.na);
+      pendL.forEach(x=>{ if(dashTabLado_(x, masivo) === 'nuestra' && dashTabPrevioFalta_(x, l.lista, masivo)) bloq.add(x); });
       const aut = l.lista.find(x=> x.p.base === 'aut');
-      if(aut && (aut.hecho || aut.na)) return pendL.find(x=> dashTabLado_(x, masivo) === 'nuestra') || pendL[0];
-      return pendL[0];
+      if(aut && (aut.hecho || aut.na)){
+        const libre = pendL.find(x=> dashTabLado_(x, masivo) === 'nuestra' && !bloq.has(x)); if(libre) return libre;
+        const b1 = pendL.find(x=> bloq.has(x)); if(b1) return dashTabPrevioFalta_(b1, l.lista, masivo) || pendL[0];   // 19NOVV1 (#214): «Esperando» el previo
+        return pendL[0];
+      }
+      return pendL[0] && bloq.has(pendL[0]) ? (dashTabPrevioFalta_(pendL[0], l.lista, masivo) || pendL[0]) : pendL[0];
     }).filter(Boolean);
-    const actual = sig.find(x=> dashTabLado_(x, masivo) === 'nuestra') || sig[0];
+    const actual = sig.find(x=> dashTabLado_(x, masivo) === 'nuestra' && !bloq.has(x)) || sig[0];
     const correos = (TRM_CORREOS || []).filter(c=> c.ESTADO === 'PENDIENTE' && trmCorreoDelTramite_(c, folio) && dashTabCorreoCuenta_(c, P));   // 06NOVV1 (#176): solo los ligados por número / ticket / a mano y del tipo del trámite · 18NOVV1 (#212)
     const correo = correos[correos.length - 1] || null;
-    const accion = dashTabLado_(actual, masivo) === 'nuestra' || !!correo;
+    const accion = (dashTabLado_(actual, masivo) === 'nuestra' && !bloq.has(actual)) || !!correo;
     // último movimiento: el registro más reciente de sus pasos o el cambio de estatus
     let ult = dashTabFecha_(t['FECHA ESTATUS']) || dashTabFecha_(t.FECHA), quien = '';
     (t.pasos || []).forEach(p=>{ const f = dashTabFecha_(p.REGISTRO) || dashTabFecha_(p['FECHA PASO']); if(f && (!ult || f > ult)) ult = f; });
@@ -1783,7 +1789,7 @@ function dashTabModelo_(){
     const c = r.conteo || {};
     const tipo = masivo ? 'Masivo' : [(c.N || c.M) ? 'Nueva' : '', c.P ? 'Portabilidad' : '', c.R ? 'Renovación' : ''].filter(Boolean).join(' + ') || 'Nueva';
     const hechos = cons.filter(x=> x.hecho || x.na).length;
-    out.push({ t, folio, cliente: trmClienteCorto_(t.CLIENTE) || t.CLIENTE || '', tipo, actual, accion, correo, rojo, dias, diasEnt, quien, ref,
+    out.push({ t, folio, cliente: trmClienteCorto_(t.CLIENTE) || t.CLIENTE || '', tipo, actual, accion, correo, rojo, dias, diasEnt, quien, ref, bloq,
       pend, nPend: pend.length, nTot: cons.length, nPaso: hechos + 1, minCorreo: fCorreo ? Math.max(0, Math.round((hoy - fCorreo) / 60000)) : null });
   });
   const acc = out.filter(x=> x.accion).sort((a, b)=> (a.ref ? a.ref.getTime() : 0) - (b.ref ? b.ref.getTime() : 0));
@@ -1952,6 +1958,14 @@ function dashTabCorreoCuenta_(c, P){
   const fC = dia(trmFechaDe_(c['FECHA CORREO']));
   if(!marcas.length || fC == null) return true;   // sin fechas para comparar: cuenta como antes
   return fC > Math.max(...marcas);
+}
+const DASH_TAB_PREVIOS_ = { actenv: ['imei'], recol: ['imei', 'fact'], entreg: ['imei', 'fact'], contr: ['imei'], exparm: ['imei', 'firma'], expent: ['imei', 'firma', 'exparm'] };
+function dashTabPrevioFalta_(x, lista, masivo){
+  if(masivo || !x || !x.p) return null;
+  const prev = (DASH_TAB_PREVIOS_[x.p.base] || []).concat(x.tipo === 'N' && x.p.base === 'contr' ? ['act'] : []);
+  if(!prev.length) return null;
+  const falta = lista.filter(y=> y.tipo === x.tipo && prev.includes(y.p.base) && !y.hecho && !y.na);
+  return falta.length ? falta.sort((a, b)=> lista.indexOf(a) - lista.indexOf(b))[0] : null;
 }
 const TRM_PAGO_NA_NOTA_ = 'AUTOMÁTICO (flujo): NO APLICA · sin pago: ';
 function trmPagoNaBloqueado_(x){ return !!(x && x.p && x.p.base === 'pago' && x.na && String(x.nota || '').indexOf(TRM_PAGO_NA_NOTA_) === 0); }
