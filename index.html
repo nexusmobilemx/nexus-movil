@@ -659,7 +659,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
     return intentar(0);
   };
 })();
-const PANEL_VERSION = '19NOVV1-MOVIL';   // 19NOVV1-MOVIL (2026-11-19, #214): «Qué hago ahora» ya no cuenta como mi acción un paso nuestro que espera un paso previo (reglas copiadas del escritorio 19NOVV1) · 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '19NOVV2-MOVIL';   // 19NOVV2-MOVIL (2026-11-19, #222): cotizaciones ordenadas por la fecha de su versión más reciente · 19NOVV1-MOVIL (2026-11-19, #214): «Qué hago ahora» ya no cuenta como mi acción un paso nuestro que espera un paso previo (reglas copiadas del escritorio 19NOVV1) · 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -1505,7 +1505,7 @@ function trmClienteCorto_(txt){ const c = clienteDeTexto_(txt); return c ? Strin
 let TRM_CORREOS = [];
 alCargar_('correos', ()=>{ TRM_CORREOS = DATA.correos || []; });
 Object.defineProperty(globalThis, 'TRAMITES_DATA', { get: ()=> DATA.trm, configurable: true });
-/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-18; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
+/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-19; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
    y lo copia al móvil en cada CONSTRUYE»). NO EDITAR AQUÍ: se reemplaza completo desde Panel_Master_NEXUS_beta.html. ===== */
 const TRM_PASOS_N_ = [
   { base:'cot',    auto:true, est:'COTIZACION VALIDADA', t:'COTIZACIÓN VALIDADA', legado:['cot'] },
@@ -2681,6 +2681,12 @@ alCargar_('pak', ()=>{ if(VISTA === 'preciosak') pakPintar_(); });
    ============================================================================ */
 const COT_DET = {};   // folio -> líneas (todas las versiones)
 let COT_Q = '', COT_ABIERTO = null, COT_CARGANDO = new Set();
+/* 19NOVV2-MOVIL (2026-11-19, a petición de César, #222): mismo orden que el escritorio: la cotización con la versión más reciente arriba
+   (fecha de su versión más alta; a igual fecha, la guardada después en COTIZACION RESUMEN). */
+function cotOrdenReciente_(a, b){
+  const fecha = c=>{ const m = String(c['FECHA'] || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m) return new Date(+m[3], +m[2] - 1, +m[1]).getTime(); const d = new Date(c['FECHA']); return isNaN(d) ? 0 : new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+  return (fecha(b) - fecha(a)) || (DATA.cot.indexOf(b) - DATA.cot.indexOf(a));
+}
 function cotFolios_(){
   const por = {};
   DATA.cot.forEach(c=>{ const f = c['FOLIO COTIZACIÓN']; if(!por[f] || (+c['VERSIÓN'] || 1) >= (+por[f]['VERSIÓN'] || 1)) por[f] = c; });
@@ -2729,7 +2735,7 @@ function cotPintar_(){
     if(st && st.d) return false;
     if(CLI){ const k = norm_(c['CLIENTE']), cc = norm_(CLI['CLIENTE CORTO']), r = norm_(razonDe_(CLI)); if(!(k === cc || k === r || (r && k.includes(r)))) return false; }
     return !q || norm_(c['CLIENTE'] + ' ' + f + ' ' + (c['FOLIO TELCEL'] || '')).includes(q);
-  }).sort((a, b)=> String(b['FOLIO COTIZACIÓN']).localeCompare(String(a['FOLIO COTIZACIÓN'])));
+  }).sort(cotOrdenReciente_);   // 19NOVV2-MOVIL (#222): por la fecha de su versión más reciente (antes por número de folio)
   lista.slice(0, 40).forEach(c=> cotCargarDetalle_(c['FOLIO COTIZACIÓN']));
   $('cotLista').innerHTML = lista.length ? lista.map(c=>{
     const f = c['FOLIO COTIZACIÓN'], st = cotEstado_(f), l = cotLineasV_(f);
