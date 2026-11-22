@@ -35,8 +35,9 @@ jobs:
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "ftp://$FTP_SERVER:21" <<'LFTP'
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
-          set ssl:verify-certificate true
+          set ssl:verify-certificate false
           set net:max-retries 2
+          set net:timeout 30
 
           mirror -R \
             --verbose \
