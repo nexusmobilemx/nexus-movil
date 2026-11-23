@@ -278,7 +278,7 @@
       <div id="adBusqueda">
         <div class="barra">
           <div class="buscador">
-            <div class="caja"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="text" id="adInput" placeholder="Buscar cliente o RFC" autocomplete="off"><button type="button" class="limpiar" data-limpiar="adInput" aria-label="Borrar">✕</button></div>
+            <div class="caja"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input type="text" id="adInput" placeholder="Buscar cliente, RFC o número" autocomplete="off"><button type="button" class="limpiar" data-limpiar="adInput" aria-label="Borrar">✕</button></div>
             <div class="sug" id="adSug"></div>
           </div>
           <div class="estado-linea"><span id="adEstado"></span><button type="button" data-recargar="adendum">Actualizar</button></div>
@@ -669,7 +669,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
     return intentar(0);
   };
 })();
-const PANEL_VERSION = '23NOVV1-MOVIL';   // 23NOVV1-MOVIL (2026-11-23, #247 #248): IMEI / ICCID no bloquea; cambios de número al cargar Master · 22NOVV4-MOVIL (2026-11-22, #246): número en naranja si tuvo cambio de número y búsqueda por el número anterior · 22NOVV2-MOVIL (2026-11-22, #241 #242): asunto en la primera línea de los correos a Telcel y colores de la propuesta simplificada · 22NOVV1-MOVIL (2026-11-22, #228 #234 #236): propuesta simplificada vertical igual al escritorio, correos superados a REVISADO y asignar correos por folio, foto del código de IMEI si la cámara no abre · 21NOVV1-MOVIL (2026-11-21, #229 #231): la lista de Trámites muestra el paso pendiente; correos a Telcel a corporativo56.r6@ · 19NOVV2-MOVIL (2026-11-19, #222): cotizaciones ordenadas por la fecha de su versión más reciente · 19NOVV1-MOVIL (2026-11-19, #214): «Qué hago ahora» ya no cuenta como mi acción un paso nuestro que espera un paso previo (reglas copiadas del escritorio 19NOVV1) · 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '23NOVV2-MOVIL';   // 23NOVV2-MOVIL (2026-11-23, #250 #251): caché de Mis pendientes, Comisiones, Reporte y cambios de número; pegado limpio y Adendum por número · 23NOVV1-MOVIL (2026-11-23, #247 #248): IMEI / ICCID no bloquea; cambios de número al cargar Master · 22NOVV4-MOVIL (2026-11-22, #246): número en naranja si tuvo cambio de número y búsqueda por el número anterior · 22NOVV2-MOVIL (2026-11-22, #241 #242): asunto en la primera línea de los correos a Telcel y colores de la propuesta simplificada · 22NOVV1-MOVIL (2026-11-22, #228 #234 #236): propuesta simplificada vertical igual al escritorio, correos superados a REVISADO y asignar correos por folio, foto del código de IMEI si la cámara no abre · 21NOVV1-MOVIL (2026-11-21, #229 #231): la lista de Trámites muestra el paso pendiente; correos a Telcel a corporativo56.r6@ · 19NOVV2-MOVIL (2026-11-19, #222): cotizaciones ordenadas por la fecha de su versión más reciente · 19NOVV1-MOVIL (2026-11-19, #214): «Qué hago ahora» ya no cuenta como mi acción un paso nuestro que espera un paso previo (reglas copiadas del escritorio 19NOVV1) · 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -727,6 +727,16 @@ function normalizeSearch(text){
   return digitsOnly.length > 10 ? digitsOnly.slice(-10) : digitsOnly;
 }
 const esNumerico_ = q=> /^\d+$/.test(normalizeSearch(q)) && normalizeSearch(q).length >= 3;
+/* 23NOVV2-MOVIL (2026-11-23, a petición de César, #251, P2 A): «habilita las reglas del panel de escritorio del pegado de números y que se eliminen
+   los espacios». Al PEGAR en los buscadores de Dashboard, Adendum, Trámites, Tareas, Masivo y Cotización, la caja se llena ya limpia con la misma
+   regla del escritorio (normalizeSearch): sin espacios ni símbolos, 10 dígitos; 15 = IMEI y 18–20 = ICCID completos. Texto con letras no se toca. */
+const PEGADO_LIMPIO_IDS_ = ['dashInput', 'adInput', 'adDetInput', 'trmInput', 'tgInput', 'masInput', 'cotInput'];
+document.addEventListener('paste', e=>{
+  const el = e.target; if(!el || !PEGADO_LIMPIO_IDS_.includes(el.id)) return;
+  const txt = (e.clipboardData || window.clipboardData) ? (e.clipboardData || window.clipboardData).getData('text') : ''; if(!txt) return;
+  const n = normalizeSearch(txt); if(!/^\d+$/.test(n) || n === txt.trim()) return;
+  e.preventDefault(); el.value = n; el.dispatchEvent(new Event('input', { bubbles: true }));
+}, true);
 function abrirEnlace_(url){ const a = document.createElement('a'); a.href = url; a.target = '_top'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); }
 
 /* ---------- caché (IndexedDB; si no hay, localStorage) ---------- */
@@ -1085,10 +1095,11 @@ function dashPintar_(){
 const CN_M_ = { porFol: new Map(), ts: 0 };
 async function cnMCargar_(){
   try{
+    if(!CN_M_.ts){ const c = await cacheGet('cambiosNum'); if(c && Array.isArray(c)) CN_M_.porFol = new Map(c); }   // 23NOVV2-MOVIL (#250)
     const r = await fetch(APPS_SCRIPT_URL + '?action=getCambiosNumero').then(x=> x.json());
     if(!r || r.ok !== true) return;
     CN_M_.porFol = new Map(); (r.cambios || []).filter(f=> f.ESTADO === 'APLICADO').forEach(f=>{ const k = String(f.FOL); CN_M_.porFol.set(k, (CN_M_.porFol.get(k) || []).concat(String(f.ANTERIOR))); });
-    CN_M_.ts = Date.now();
+    CN_M_.ts = Date.now(); cacheSet('cambiosNum', [...CN_M_.porFol]);
   }catch(e){}
 }
 function cnMAnt_(r){ return r ? (CN_M_.porFol.get(String(mv(r, 'FOL')).trim()) || []) : []; }
@@ -1367,20 +1378,34 @@ $('crLista').addEventListener('click', async e=>{
    Los mismos pendientes del escritorio (hoja PENDIENTES, Pendientes.gs): los privados solo los ve quien los creó; con COMPARTIDO los ven
    César y Lucero, cualquiera los marca hechos o los borra, y se ve quién lo creó y quién lo completó. Se actualiza al abrir, al guardar y
    cada 30 s con la ventana abierta. */
-const PEND = { lista: [], comp: false, timer: null };
+/* 23NOVV2-MOVIL (2026-11-23, a petición de César, #250, P1 A): «la sección de pendientes tarda en cargar cada vez que lo abro». Mis pendientes
+   abre AL INSTANTE con lo último guardado en el teléfono (por usuario) y se actualiza solo por detrás, con la hora de la última actualización.
+   Se precarga al entrar al panel; nunca dice «Sin pendientes.» mientras no ha llegado ni la copia guardada ni la del servidor. */
+const PEND = { lista: [], comp: false, timer: null, listo: false, ts: 0 };
+const pendLlave_ = ()=> 'pend_' + String(CURRENT_USER_KEY || '').toLowerCase();
+function pendHace_(){ if(!PEND.ts) return ''; const m = Math.round((Date.now() - PEND.ts) / 60000); return m < 1 ? 'Actualizado hace un momento' : 'Actualizado hace ' + m + ' min'; }
+async function pendDesdeCache_(){
+  if(PEND.listo) return;
+  const c = await cacheGet(pendLlave_());
+  if(c && !PEND.listo && Array.isArray(c.lista)){ PEND.lista = c.lista; PEND.ts = c.ts || 0; PEND.listo = true; }
+}
 async function pendCargar_(){
+  await pendDesdeCache_(); pendPintar_();
   try{
     const r = await fetch(APPS_SCRIPT_URL + '?action=getPendientes&usuarioKey=' + encodeURIComponent(CURRENT_USER_KEY || '')).then(x=> x.json());
     if(!r || r.ok !== true) throw new Error((r && r.error) || 'sin respuesta');
-    PEND.lista = r.pendientes || []; $('pdEstado').textContent = '';
-  }catch(err){ $('pdEstado').textContent = /no reconocida|no válida/i.test(err.message) ? 'Falta pegar Pendientes.gs y Codigo.gs en Apps Script (Nueva versión).' : 'Sin conexión: ' + err.message; }
+    PEND.lista = r.pendientes || []; PEND.listo = true; PEND.ts = Date.now(); cacheSet(pendLlave_(), { lista: PEND.lista, ts: PEND.ts });
+    $('pdEstado').textContent = pendHace_();
+  }catch(err){ $('pdEstado').textContent = (/no reconocida|no válida/i.test(err.message) ? 'Falta pegar Pendientes.gs y Codigo.gs en Apps Script (Nueva versión).' : 'Sin conexión: ' + err.message) + (PEND.ts ? ' · ' + pendHace_().toLowerCase() : ''); }
   pendPintar_();
 }
 async function pendAccion_(datos){
-  try{ const r = await post_(Object.assign({ action:'pendientesAccion', usuarioKey: CURRENT_USER_KEY }, datos)); PEND.lista = r.pendientes || []; }
+  try{ const r = await post_(Object.assign({ action:'pendientesAccion', usuarioKey: CURRENT_USER_KEY }, datos)); PEND.lista = r.pendientes || []; PEND.listo = true; PEND.ts = Date.now(); cacheSet(pendLlave_(), { lista: PEND.lista, ts: PEND.ts }); $('pdEstado').textContent = pendHace_(); }
   catch(err){ notificar('Mis pendientes: ' + err.message, 'error'); }
   pendPintar_();
 }
+// precarga al entrar (el número del botón y la lista ya listos al abrir)
+setTimeout(()=>{ if(CURRENT_USER_KEY) pendCargar_(); }, 2500);
 function pendPintar_(){
   const yo = String(CURRENT_USER_KEY || '').toLowerCase();
   const orden = PEND.lista.filter(n=> !n.ok).concat(PEND.lista.filter(n=> n.ok));
@@ -1390,7 +1415,7 @@ function pendPintar_(){
     return `<div class="pend ${n.ok ? 'hecha' : ''}"><input type="checkbox" data-pd-ok="${esc(n.id)}"${n.ok ? ' checked' : ''} aria-label="Hecho">
       <div><span class="t">${esc(n.t)}</span>${n.comp ? '<span class="tag">COMPARTIDO</span>' : ''}${quien ? `<div class="k">${esc(quien)}</div>` : ''}</div>
       <div class="acc">${mio ? `<button type="button" data-pd-sh="${esc(n.id)}">${n.comp ? 'Privado' : 'Compartir'}</button>` : ''}<button type="button" data-pd-x="${esc(n.id)}" aria-label="Borrar">✕</button></div></div>`;
-  }).join('') || '<div class="vacio-panel">Sin pendientes.</div>';
+  }).join('') || (PEND.listo ? '<div class="vacio-panel">Sin pendientes.</div>' : '<div class="vacio-panel">Cargando…</div>');   // 23NOVV2-MOVIL (#250)
   const n = PEND.lista.filter(x=> !x.ok).length;
   $('dashPendN').textContent = n ? ` (${n})` : '';
   $('pdLimpiar').style.display = PEND.lista.some(x=> x.ok) ? '' : 'none';
@@ -1482,6 +1507,29 @@ function adPintarDetalle_(){
 $('adFiltros').addEventListener('click', e=>{ const b = e.target.closest('[data-f]'); if(!b) return; AD_FILTRO = b.dataset.f; adPintarDetalle_(); });
 $('adDetInput').addEventListener('input', adPintarDetalle_);
 sugerenciasCliente_('adInput', 'adSug', row=>{ AD_CLI = row; clienteActivoSet_(row); $('adInput').value = razonDe_(row); adPintarResumen_(); });
+/* 23NOVV2-MOVIL (#251): Adendum Resumen busca por número (línea, cuenta o cuenta padre), igual que el escritorio (#193, acción
+   buscarLineaAdendumPorTelefono con cuentas=1): abre el Detalle del cliente con ese número filtrado y avisa qué encontró. */
+let AD_NUM_TIMER = null, AD_NUM_ULT = '';
+async function adBuscarNumero_(n){
+  if(n === AD_NUM_ULT) return; AD_NUM_ULT = n;
+  let r; try{ r = await fetch(APPS_SCRIPT_URL + '?action=buscarLineaAdendumPorTelefono&telefono=' + encodeURIComponent(n) + '&cuentas=1').then(x=> x.json()); }
+  catch(err){ AD_NUM_ULT = ''; notificar('Sin conexión: no se pudo buscar el número en Adendum.', 'error'); return; }
+  if(!r || r.ok !== true){ notificar((r && r.error) || 'No se encontró ese número en Adendum.', 'aviso'); return; }
+  const f = r.fila || {}, rfc = norm_(f.RFC || '');
+  const row = DATA.clientes.find(c=> norm_(cfVal(c, 'RFC')) === rfc) || null;
+  if(!row){ notificar(`El número ${n} es de «${f['RAZON SOCIAL'] || f['NOMBRE CORTO'] || f.RFC || ''}», que no está en BD CLIENTES.`, 'aviso'); return; }
+  AD_CLI = row; clienteActivoSet_(row); $('adInput').value = razonDe_(row);
+  adAbrirDetalle_();
+  if(r.tipo === 'telefono'){ $('adDetInput').value = n; adPintarDetalle_(); }
+  const tipo = r.tipo === 'cuenta' ? 'la cuenta' : r.tipo === 'cuentaPadre' ? 'la cuenta padre' : 'la línea';
+  notificar(`${n} es ${tipo} de ${razonDe_(row)}${r.tipo !== 'telefono' && r.lineas ? ' (' + r.lineas + ' línea(s))' : ''}${r.clientes > 1 ? ' · aparece en ' + r.clientes + ' clientes' : ''}.`, 'ok');
+}
+$('adInput').addEventListener('input', ()=>{
+  const n = normalizeSearch($('adInput').value);
+  clearTimeout(AD_NUM_TIMER);
+  if(/^\d{10}$/.test(n)) AD_NUM_TIMER = setTimeout(()=> adBuscarNumero_(n), 350); else AD_NUM_ULT = '';
+});
+$('adInput').addEventListener('keydown', e=>{ if(e.key === 'Enter'){ const n = normalizeSearch($('adInput').value); if(/^\d{10}$/.test(n)){ e.preventDefault(); AD_NUM_ULT = ''; adBuscarNumero_(n); } } });
 ENTRAR.adendum = ()=>{
   cargar('adRes'); cargar('adDet');
   if(CLI && (!AD_CLI || AD_CLI !== CLI)){ AD_CLI = CLI; $('adInput').value = razonDe_(CLI); }
@@ -2931,7 +2979,13 @@ function showApp(userKey){
   try{ history.replaceState({ nexus: 0 }, ''); history.pushState({ nexus: 0 }, ''); }catch(e){}
   setTimeout(()=>{ ['clientes', 'tareas', 'adRes', 'trm', 'cot', 'tickets'].forEach(k=> cargar(k)); mostrarVista_('dashboard'); }, 0);
 }
-$('mLogoutBtn').addEventListener('click', ()=>{ localStorage.removeItem(AUTH_STORAGE_KEY); sessionStorage.removeItem(AUTH_STORAGE_KEY); location.reload(); });
+$('mLogoutBtn').addEventListener('click', ()=>{
+  localStorage.removeItem(AUTH_STORAGE_KEY); sessionStorage.removeItem(AUTH_STORAGE_KEY);
+  // 23NOVV2-MOVIL (#250 punto 6): al cerrar sesión se borra la copia guardada en el teléfono
+  try{ Object.keys(localStorage).filter(k=> /^nexusMovil2_/.test(k)).forEach(k=> localStorage.removeItem(k)); }catch(e){}
+  try{ if(IDB.db) IDB.db.close(); indexedDB.deleteDatabase('nexus_movil_v2'); }catch(e){}
+  location.reload();
+});
 // 18OCTV6 (#10): la contraseña la valida Apps Script y regresa el token (30 días en este equipo).
 $('loginForm').addEventListener('submit', async e=>{
   e.preventDefault();
@@ -3353,11 +3407,11 @@ let COM_ = { filas: null };
 async function comAbrir_(){
   if(!ES_ADMIN_()) return;
   abrirOv_('ov-comisiones');
-  if(!COM_.filas){
-    $('cmEstado').textContent = 'Cargando comisiones…';
-    try{ const r = await fetch(APPS_SCRIPT_URL + '?action=getComData').then(x=> x.json()); if(!r || r.error) throw new Error((r && r.error) || 'sin respuesta'); COM_.filas = r.rows || []; }
-    catch(err){ $('cmEstado').textContent = 'No se pudo cargar: ' + err.message; return; }
-  }
+  // 23NOVV2-MOVIL (#250): lo guardado al instante y lo nuevo por detrás
+  if(!COM_.filas){ const c = await cacheGet('com'); if(c && Array.isArray(c)) COM_.filas = c; }
+  if(COM_.filas) comPintar_(); else $('cmEstado').textContent = 'Cargando comisiones…';
+  try{ const r = await fetch(APPS_SCRIPT_URL + '?action=getComData').then(x=> x.json()); if(!r || r.error) throw new Error((r && r.error) || 'sin respuesta'); COM_.filas = r.rows || []; cacheSet('com', COM_.filas); }
+  catch(err){ if(!COM_.filas){ $('cmEstado').textContent = 'No se pudo cargar: ' + err.message; return; } }
   comPintar_();
 }
 function comPintar_(){
@@ -3378,12 +3432,14 @@ async function repAbrirMovil_(){ if(!ES_ADMIN_()) return; abrirOv_('ov-reporte')
 async function repConsultarMovil_(){
   const p2 = n=> String(n).padStart(2, '0'), iso = d=> d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
   const hoy = new Date(), desde = new Date(hoy.getTime() - REP_M_.dias * 86400000);
-  $('rpEstado').textContent = 'Consultando BITACORA…';
+  // 23NOVV2-MOVIL (#250): caché por rango (Hoy / 7 / 30 días)
+  const llave = 'rep_' + REP_M_.dias, c = await cacheGet(llave);
+  if(c && Array.isArray(c)){ REP_M_.filas = c; repPintarMovil_(); } else $('rpEstado').textContent = 'Consultando BITACORA…';
   try{
     const r = await fetch(APPS_SCRIPT_URL + '?action=getBitacoraAcciones&desde=' + iso(desde) + '&hasta=' + iso(hoy)).then(x=> x.json());
     if(!r || r.error || r.ok !== true) throw new Error((r && r.error) || 'sin respuesta');
-    REP_M_.filas = (r.filas || []).slice().reverse();
-  }catch(err){ $('rpEstado').textContent = 'No se pudo consultar: ' + err.message; return; }
+    REP_M_.filas = (r.filas || []).slice().reverse(); cacheSet(llave, REP_M_.filas);
+  }catch(err){ if(!c){ $('rpEstado').textContent = 'No se pudo consultar: ' + err.message; return; } }
   repPintarMovil_();
 }
 function repPintarMovil_(){
