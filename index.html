@@ -668,7 +668,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
     return intentar(0);
   };
 })();
-const PANEL_VERSION = '22NOVV1-MOVIL';   // 22NOVV1-MOVIL (2026-11-22, #228 #234 #236): propuesta simplificada vertical igual al escritorio, correos superados a REVISADO y asignar correos por folio, foto del código de IMEI si la cámara no abre · 21NOVV1-MOVIL (2026-11-21, #229 #231): la lista de Trámites muestra el paso pendiente; correos a Telcel a corporativo56.r6@ · 19NOVV2-MOVIL (2026-11-19, #222): cotizaciones ordenadas por la fecha de su versión más reciente · 19NOVV1-MOVIL (2026-11-19, #214): «Qué hago ahora» ya no cuenta como mi acción un paso nuestro que espera un paso previo (reglas copiadas del escritorio 19NOVV1) · 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '22NOVV2-MOVIL';   // 22NOVV2-MOVIL (2026-11-22, #241 #242): asunto en la primera línea de los correos a Telcel y colores de la propuesta simplificada · 22NOVV1-MOVIL (2026-11-22, #228 #234 #236): propuesta simplificada vertical igual al escritorio, correos superados a REVISADO y asignar correos por folio, foto del código de IMEI si la cámara no abre · 21NOVV1-MOVIL (2026-11-21, #229 #231): la lista de Trámites muestra el paso pendiente; correos a Telcel a corporativo56.r6@ · 19NOVV2-MOVIL (2026-11-19, #222): cotizaciones ordenadas por la fecha de su versión más reciente · 19NOVV1-MOVIL (2026-11-19, #214): «Qué hago ahora» ya no cuenta como mi acción un paso nuestro que espera un paso previo (reglas copiadas del escritorio 19NOVV1) · 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -966,7 +966,8 @@ async function crearTicket_(tipo, row, asunto, detalle){
     return r.ticket;
   }catch(err){ notificar(`No se pudo registrar el ticket (${err.message}). El correo se abre sin número de ticket.`, 'aviso'); return ''; }
 }
-function mailto_(para, asunto, lineas){ abrirEnlace_(`mailto:${para}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(lineas.join('\r\n'))}`); }
+// 22NOVV2-MOVIL (2026-11-22, a petición de César, #241): el asunto completo también va en la primera línea del cuerpo (Telcel cambia el asunto y cita el cuerpo)
+function mailto_(para, asunto, lineas){ abrirEnlace_(`mailto:${para}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent([asunto, ''].concat(lineas).join('\r\n'))}`); }
 async function correoAdendum_(row){
   const razon = razonDe_(row), rfc = cfVal(row, 'RFC');
   const tk = await crearTicket_('ADENDUM', row, 'SOLICITUD DE REPORTE DE ADENDUM', '');
@@ -1552,7 +1553,7 @@ function trmClienteCorto_(txt){ const c = clienteDeTexto_(txt); return c ? Strin
 let TRM_CORREOS = [];
 alCargar_('correos', ()=>{ TRM_CORREOS = DATA.correos || []; });
 Object.defineProperty(globalThis, 'TRAMITES_DATA', { get: ()=> DATA.trm, configurable: true });
-/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-22; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
+/* ===== REGLAS DE PASOS (copia del escritorio 2026-11-23; #162 P39 A: «un solo bloque de reglas compartido: Code lo extrae del escritorio
    y lo copia al móvil en cada CONSTRUYE»). NO EDITAR AQUÍ: se reemplaza completo desde Panel_Master_NEXUS_beta.html. ===== */
 const TRM_PASOS_N_ = [
   { base:'cot',    auto:true, est:'COTIZACION VALIDADA', t:'COTIZACIÓN VALIDADA', legado:['cot'] },
@@ -3149,6 +3150,12 @@ const PV_CSS_ = `
 .pv-sheet .box{ margin-top:7px; border-radius:10px; padding:9px 13px; background:#0b1727; border:1px solid #16304a; }
 .pv-sheet .par{ display:flex; gap:7px; margin-top:8px; } .pv-sheet .par .box{ flex:1 1 0; min-width:0; margin-top:0; } .pv-sheet .par .b-v{ font-size:23px; white-space:nowrap; } .pv-sheet .par .b-s{ font-size:11px; }
 .pv-sheet .box.hero{ background:#15385c; border-color:#2f6aa3; }
+/* 22NOVV2 (#242, maqueta de colores aprobada): recuadros alternos claro / oscuro y un solo azul de dato #1e9cff */
+.pv-sheet .box.t1, .pv-sheet .det.t1{ background:#143a64; border-color:#2f6aa3; }
+.pv-sheet .box.t0, .pv-sheet .det.t0{ background:#08111f; border-color:#16304a; }
+.pv-sheet .t1 .k{ color:#b4cde8; } .pv-sheet .t1 .b-s{ color:#d6e8f9; } .pv-sheet .t1 .grid3{ border-top-color:#2f6aa3; }
+.pv-sheet .t0 .grid3{ border-top-color:#16304a; }
+.pv-sheet .bl{ color:#1e9cff; } .pv-sheet .bw{ color:#fff; }
 .pv-sheet .b-t{ font-size:11.5px; letter-spacing:.6px; text-transform:uppercase; color:#fff; }
 .pv-sheet .dsc .b-t{ text-align:center; } .pv-sheet .dsc .dos > div{ text-align:center; }
 .pv-sheet .b-v{ font-size:27px; font-weight:800; line-height:1.1; margin-top:3px; overflow:hidden; }
@@ -3157,7 +3164,7 @@ const PV_CSS_ = `
 .pv-sheet .hero .b-s{ color:#cfe3f7; }
 .pv-sheet .dos{ display:flex; gap:10px; margin-top:6px; } .pv-sheet .dos > div{ flex:1 1 0; } .pv-sheet .dos .b-v{ font-size:24px; } .pv-sheet .dos .sep{ flex:0 0 1px; background:#16304a; }
 .pv-sheet .lin-top{ display:flex; gap:10px; align-items:center; }
-.pv-sheet .cant{ flex:0 0 auto; min-width:46px; text-align:center; background:#15385c; border:1px solid #2f6aa3; border-radius:8px; padding:5px 6px; font-size:20px; font-weight:800; line-height:1.05; }
+.pv-sheet .cant{ flex:0 0 auto; min-width:46px; text-align:center; background:#08111f; color:#1e9cff; border:1px solid #2f6aa3; border-radius:8px; padding:5px 6px; font-size:20px; font-weight:800; line-height:1.05; }
 .pv-sheet .cant small{ display:block; font-size:8.5px; font-weight:400; color:#cfe3f7; letter-spacing:.3px; }
 .pv-sheet .lp{ display:flex; align-items:center; margin-top:7px; gap:8px; } .pv-sheet .lp-c{ flex:0 0 132px; font-size:17px; font-weight:800; } .pv-sheet .lp-p{ font-size:15px; font-weight:800; line-height:1.2; }
 .pv-sheet .eq-row{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-top:3px; } .pv-sheet .eq-row .v{ font-size:19px; flex:0 0 auto; margin-top:0; } .pv-sheet .eq-row .eq-m{ margin-top:0; flex:1 1 auto; min-width:0; }
@@ -3173,11 +3180,12 @@ const PV_CSS_ = `
 .pv-sheet .cond p{ margin:0 0 3px; font-size:10.5px; line-height:1.4; color:#dfe6f0; }
 .pv-sheet .pie2{ margin-top:auto; text-align:center; font-size:9.5px; letter-spacing:1.4px; color:#8a97ab; padding:8px 0 10px; }
 .pv-sheet .det{ margin-top:9px; border-radius:10px; padding:11px 13px; background:#0b1727; border:1px solid #16304a; }
+.pv-sheet .det .det-p.bw{ font-size:12.5px; font-weight:700; }
 .pv-sheet .det .lin-top{ align-items:flex-start; }
 .pv-sheet .det-m{ font-size:14.5px; font-weight:800; line-height:1.25; }
 .pv-sheet .det-p{ font-size:12px; color:#cfd9e6; margin-top:3px; line-height:1.35; }
 .pv-sheet .chips{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-.pv-sheet .chip{ font-size:10.5px; border:1px solid #2f6aa3; color:#cfe3f7; border-radius:99px; padding:3px 9px; }
+.pv-sheet .chip{ font-size:10.5px; border:1px solid #3f7fc0; color:#cfe3f7; border-radius:99px; padding:3px 9px; }
 .pv-sheet .tot-l{ margin-top:10px; text-align:center; font-size:11.5px; color:#9fb0c7; }`;
 function pvEsc_(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function pvM_(n){ n = Number(n); return '$' + (Number.isFinite(n) ? n : 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -3208,27 +3216,30 @@ function pvHojas_(m, forzarV2){
     <p>1. Propuesta vigente 10 días naturales desde su emisión; precios con IVA y sujetos a cambio por parte de Telcel.</p>
     <p>2. Sujeta a validación y autorización final de Telcel y a la disponibilidad de equipos al contratar.</p>
     <p>3. Cualquier cambio de equipos, planes o cantidades requiere una nueva propuesta.</p></div><div class="pie2">NEXUS · CONECTIVIDAD INTELIGENTE</div>`;
-  const pagos = (t.ini > 0 || t.dif > 0) ? `<div class="par"><div class="box hero"><div class="b-t">Pago inicial</div><div class="b-v" data-pv-fit>${pvM_(t.ini)}</div><div class="b-s">Pago único al contratar</div></div>
-    <div class="box"><div class="b-t">Monto a diferir</div><div class="b-v az" data-pv-fit>${pvM_(t.dif)}</div><div class="b-s">${pvM_(t.mens)} al mes por equipos</div></div></div>` : '';
-  const desc = t.desc > 0 && t.reg > 0 ? `<div class="box dsc"><div class="b-t">Descuento</div><div class="dos"><div><div class="b-v" data-pv-fit>${pvM_(t.desc)}</div></div><div class="sep"></div><div><div class="b-v az">${(t.desc / t.reg * 100).toFixed(1)}%</div></div></div></div>` : '';
+  // 22NOVV2 (#242): tonos alternos por renglón (claro t1 / oscuro t0) en el orden en que aparecen, como la maqueta aprobada
+  let tono = 0; const sig = ()=> (tono++ % 2 === 0 ? 't1' : 't0');
+  const tPag = (t.ini > 0 || t.dif > 0) ? sig() : '';
+  const pagos = (t.ini > 0 || t.dif > 0) ? `<div class="par"><div class="box ${tPag}"><div class="b-t">Pago inicial</div><div class="b-v bw" data-pv-fit>${pvM_(t.ini)}</div><div class="b-s">Pago único al contratar</div></div>
+    <div class="box ${tPag}"><div class="b-t">Monto a diferir</div><div class="b-v az" data-pv-fit>${pvM_(t.dif)}</div><div class="b-s">${pvM_(t.mens)} al mes por equipos</div></div></div>` : '';
+  const desc = t.desc > 0 && t.reg > 0 ? `<div class="box dsc ${sig()}"><div class="b-t">Descuento</div><div class="dos"><div><div class="b-v bw" data-pv-fit>${pvM_(t.desc)}</div></div><div class="sep"></div><div><div class="b-v az">${(t.desc / t.reg * 100).toFixed(1)}%</div></div></div></div>` : '';
   const FECHA = m.fecha ? `<div class="s-fecha">Emitida el ${pvEsc_(m.fecha)}</div>` : '';
   const CTA = `<div class="cta"><b>ESTAMOS LISTOS PARA AYUDARTE A GESTIONAR TU TRÁMITE</b><span>Para iniciar envíanos el formato oficial firmado y la CSF del mes actual.</span></div>`;
   const resumen = plural(n, 'línea', 'líneas') + ' · ' + plural(t.eq, 'equipo', 'equipos');
   if(G.length === 1 && !forzarV2){
     const g = G[0].l;
     return { version: 1, hojas: [`<div class="pv-sheet">${cab('')}${pagos}${desc}
-      <div class="box"><div class="hd"><div class="b-t">${n === 1 ? 'Línea y plan' : 'Líneas y plan'}</div><div class="r">${resumen}</div></div>
-        <div class="lp"><div class="lp-c">${pvEsc_(n === 1 && g.tel ? g.tel : plural(n, 'línea', 'líneas'))}</div><div class="lp-p">${pvEsc_(g.plan || '—')}</div></div>
-        <div class="grid3"><div><div class="k">Renta mensual${n > 1 ? ' por línea' : ''}</div><div class="v">${pvM_(g.renta)}</div></div><div><div class="k">Datos</div><div class="v">${pvEsc_(g.gb || '—')}</div></div><div><div class="k">Plazo</div><div class="v">${g.pl ? g.pl + ' meses' : '—'}</div></div></div></div>
-      ${g.modelo ? `<div class="box"><div class="hd"><div class="b-t">Equipo</div><div class="b-t">Precio regular${n > 1 ? ' c/u' : ''}</div></div><div class="eq-row"><div class="eq-m">${pvEsc_(g.modelo)}</div><div class="v">${pvM_(g.reg)}</div></div></div>` : ''}
+      <div class="box ${sig()}"><div class="hd"><div class="b-t">${n === 1 ? 'Línea y plan' : 'Líneas y plan'}</div><div class="r">${resumen}</div></div>
+        <div class="lp"><div class="lp-c bl">${pvEsc_(n === 1 && g.tel ? g.tel : plural(n, 'línea', 'líneas'))}</div><div class="lp-p bw">${pvEsc_(g.plan || '—')}</div></div>
+        <div class="grid3"><div><div class="k">Renta mensual${n > 1 ? ' por línea' : ''}</div><div class="v bl">${pvM_(g.renta)}</div></div><div><div class="k">Datos</div><div class="v">${pvEsc_(g.gb || '—')}</div></div><div><div class="k">Plazo</div><div class="v">${g.pl ? g.pl + ' meses' : '—'}</div></div></div></div>
+      ${g.modelo ? `<div class="box ${sig()}"><div class="hd"><div class="b-t">Equipo</div><div class="b-t">Precio regular${n > 1 ? ' c/u' : ''}</div></div><div class="eq-row"><div class="eq-m bl">${pvEsc_(g.modelo)}</div><div class="v bw">${pvM_(g.reg)}</div></div></div>` : ''}
       ${FECHA}${CTA}</div>${COND}</div>`] };
   }
   const h1 = `<div class="pv-sheet">${cab('RESUMEN DE PRECIOS · HOJA 1 DE 2')}${pagos}${desc}
-    <div class="box"><div class="b-t">Renta mensual de planes (total)</div><div class="b-v" data-pv-fit>${pvM_(t.renta)}</div><div class="b-s">${resumen} · el detalle va en la hoja 2</div></div>
+    <div class="box t0"><div class="b-t">Renta mensual de planes (total)</div><div class="b-v bl" data-pv-fit>${pvM_(t.renta)}</div><div class="b-s">${resumen} · el detalle va en la hoja 2</div></div>
     ${FECHA}${CTA}</div>${COND}</div>`;
   const h2 = `<div class="pv-sheet">${cab('DETALLE DE LÍNEAS Y EQUIPOS · HOJA 2 DE 2')}
-    ${G.map(g=> `<div class="det"><div class="lin-top"><div class="cant">${g.n}<small>${g.n === 1 ? 'LÍNEA' : 'LÍNEAS'}</small></div>
-      <div><div class="det-m">${pvEsc_(g.l.modelo || 'Sin equipo (solo plan)')}</div><div class="det-p">${pvEsc_(g.l.plan || '—')}</div></div></div>
+    ${G.map((g, i)=> `<div class="det ${i % 2 === 0 ? 't1' : 't0'}"><div class="lin-top"><div class="cant">${g.n}<small>${g.n === 1 ? 'LÍNEA' : 'LÍNEAS'}</small></div>
+      <div><div class="det-m bl">${pvEsc_(g.l.modelo || 'Sin equipo (solo plan)')}</div><div class="det-p bw">${pvEsc_(g.l.plan || '—')}</div></div></div>
       <div class="chips">${[g.l.gb, g.l.pl ? g.l.pl + ' meses' : '', g.l.mod].filter(Boolean).map(x=> `<span class="chip">${pvEsc_(x)}</span>`).join('')}</div></div>`).join('')}
     <div class="tot-l">${resumen} · sin montos (los precios están en la hoja 1)</div>
     ${FECHA}</div>${COND}</div>`;
