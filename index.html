@@ -154,6 +154,7 @@
   .correo-acc{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; }
   .correo-acc .btn-prim{ width:auto; height:40px; padding:0 16px; margin:0; }
   /* 22NOVV1-MOVIL (#234 P6): asignar a un trámite por folio */
+  .num-cambio{ color:var(--amber); }   /* 22NOVV4-MOVIL (#246) */
   .cr-asig{ display:flex; gap:8px; align-items:center; margin-top:8px; }
   .cr-asig select{ flex:1; min-width:0; height:40px; }
   .cr-asig .btn-prim{ width:auto; height:40px; padding:0 16px; margin:0; }
@@ -668,7 +669,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
     return intentar(0);
   };
 })();
-const PANEL_VERSION = '22NOVV2-MOVIL';   // 22NOVV2-MOVIL (2026-11-22, #241 #242): asunto en la primera línea de los correos a Telcel y colores de la propuesta simplificada · 22NOVV1-MOVIL (2026-11-22, #228 #234 #236): propuesta simplificada vertical igual al escritorio, correos superados a REVISADO y asignar correos por folio, foto del código de IMEI si la cámara no abre · 21NOVV1-MOVIL (2026-11-21, #229 #231): la lista de Trámites muestra el paso pendiente; correos a Telcel a corporativo56.r6@ · 19NOVV2-MOVIL (2026-11-19, #222): cotizaciones ordenadas por la fecha de su versión más reciente · 19NOVV1-MOVIL (2026-11-19, #214): «Qué hago ahora» ya no cuenta como mi acción un paso nuestro que espera un paso previo (reglas copiadas del escritorio 19NOVV1) · 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
+const PANEL_VERSION = '22NOVV4-MOVIL';   // 22NOVV4-MOVIL (2026-11-22, #246): número en naranja si tuvo cambio de número y búsqueda por el número anterior · 22NOVV2-MOVIL (2026-11-22, #241 #242): asunto en la primera línea de los correos a Telcel y colores de la propuesta simplificada · 22NOVV1-MOVIL (2026-11-22, #228 #234 #236): propuesta simplificada vertical igual al escritorio, correos superados a REVISADO y asignar correos por folio, foto del código de IMEI si la cámara no abre · 21NOVV1-MOVIL (2026-11-21, #229 #231): la lista de Trámites muestra el paso pendiente; correos a Telcel a corporativo56.r6@ · 19NOVV2-MOVIL (2026-11-19, #222): cotizaciones ordenadas por la fecha de su versión más reciente · 19NOVV1-MOVIL (2026-11-19, #214): «Qué hago ahora» ya no cuenta como mi acción un paso nuestro que espera un paso previo (reglas copiadas del escritorio 19NOVV1) · 18NOVV2-MOVIL (2026-11-18, #162 P42 B): RENOVACIÓN APLICADA y FACTURA se aceptan desde la bandeja de correos del móvil (lectura del PDF en el teléfono); reglas de pasos al día con el escritorio 18NOVV1 · 18NOVV1-MOVIL (2026-11-18, #212): un correo de Telcel anterior a la marca de su paso ya no pide acción · 17NOVV1-MOVIL (2026-11-17, #209): «Qué hago ahora» con las reglas nuevas de acción nuestra / en espera · 11NOVV1-MOVIL (2026-11-11, #162 fase 3): propuesta, tickets, WhatsApp, foto de documento, validar IMEI, Comisiones y Reporte (César), acciones sin señal y AUTORIZADA de nuevas · 09NOVV1-MOVIL (2026-11-09, #189 sesión en memoria y aviso sin token; #191 CONTRATOS sin previos) · 07NOVV1-MOVIL (2026-11-07, #182): la sesión ya no se cierra por un rechazo pasajero; volver a entrar sin recargar · 06NOVV3-MOVIL: salir de Pendientes ya no pregunta «¿Descartar lo capturado?» · 06NOVV1-MOVIL (2026-11-06, #176): correos de Telcel solo por número de trámite · 04NOVV2-MOVIL (#162 fase 2): «Qué hago ahora», correos de Telcel y responsable del trámite · 04NOVV1-MOVIL (2026-11-04, #162 fases 0–1 y #166): pasos del trámite con las reglas del escritorio, sin estatus libre, nota e historial; Mis pendientes en el Dashboard · 22OCTV3-MOVIL (2026-10-22): instalable como app (#68) ·   // 22OCTV2-MOVIL (2026-10-22): CONTRATO FIRMADO también en renovaciones (#62) · 21OCTV8-MOVIL: + estatus ACTIVACION ENVIADA (#40) · 21OCTV2-MOVIL: estatus nuevos de trámites (#26) · 13OCTV1-MOVIL: Precios AK con el inventario RUNNING
 const AUTH_STORAGE_KEY = 'nexus_auth_session_movil_v1';
 const USERS_DB = {
   cesar:  { displayName:'César Balderas',    role:'admin' },
@@ -1079,6 +1080,22 @@ function dashPintar_(){
     irA(b.dataset.ir);
   }));
 }
+/* 22NOVV4-MOVIL (2026-11-22, a petición de César, #246, P17 A): líneas con cambio de número (hoja CAMBIOS DE NUMERO, #245): el número va en
+   naranja y al tocarlo dice «Cambio de número · número anterior …»; buscar el número anterior lleva a la línea con el número nuevo. */
+const CN_M_ = { porFol: new Map(), ts: 0 };
+async function cnMCargar_(){
+  try{
+    const r = await fetch(APPS_SCRIPT_URL + '?action=getCambiosNumero').then(x=> x.json());
+    if(!r || r.ok !== true) return;
+    CN_M_.porFol = new Map(); (r.cambios || []).filter(f=> f.ESTADO === 'APLICADO').forEach(f=>{ const k = String(f.FOL); CN_M_.porFol.set(k, (CN_M_.porFol.get(k) || []).concat(String(f.ANTERIOR))); });
+    CN_M_.ts = Date.now();
+  }catch(e){}
+}
+function cnMAnt_(r){ return r ? (CN_M_.porFol.get(String(mv(r, 'FOL')).trim()) || []) : []; }
+function cnMNum_(r, html){ const a = cnMAnt_(r); return a.length ? `<span class="num-cambio" data-cn-nota="${esc('Cambio de número · número anterior ' + a.join(', '))}" title="${esc('Cambio de número · número anterior ' + a.join(', '))}">${html}</span>` : html; }
+function cnMFolDeAnterior_(n){ let fol = ''; CN_M_.porFol.forEach((a, f)=>{ if(!fol && a.includes(n)) fol = f; }); return fol; }
+document.addEventListener('click', e=>{ const s = e.target.closest && e.target.closest('[data-cn-nota]'); if(s) notificar(s.dataset.cnNota, 'aviso'); });
+setTimeout(cnMCargar_, 8000); setInterval(cnMCargar_, 30 * 60000);
 // Búsqueda por número (42.3): registro MÁS RECIENTE de Master con ese número
 function dashPintarTelefono_(n){
   const cont = $('dashContenido');
@@ -1087,7 +1104,7 @@ function dashPintarTelefono_(n){
     if(n.length === 15) return String(mv(r, 'IMEI')).replace(/\D/g, '').includes(n);
     if(n.length >= 18){ const v = String(mv(r, 'ICCID')).replace(/\D/g, ''); return v.length >= 15 && (v.includes(n.slice(0, 19)) || n.startsWith(v)); }
     const d = String(mv(r, 'NUMERO')).replace(/\D/g, ''), c = String(mv(r, 'CUENTA')).replace(/\D/g, '');
-    return d === n || (n.length >= 6 && c === n);
+    return d === n || (n.length >= 6 && c === n) || (n.length === 10 && cnMAnt_(r).includes(n));   // 22NOVV4-MOVIL (#246): por el número anterior
   }).sort((a, b)=> (+mv(b, 'FOL') || 0) - (+mv(a, 'FOL') || 0));
   if(!filas.length){ cont.innerHTML = `<div class="vacio-panel">No hay líneas con <span class="num">${esc(n)}</span> en Master.</div>`; return; }
   const r = filas[0];
@@ -1098,7 +1115,7 @@ function dashPintarTelefono_(n){
     <div class="k">Cliente</div>
     <button type="button" id="dashTelCli" style="background:none; border:none; padding:0; text-align:left; color:var(--cyan); font-size:18px; font-weight:600;">${esc(cliRow ? razonDe_(cliRow) : mv(r, 'CLIENTE'))}</button>
     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
-      <div><div class="k">Número</div><div class="num mega">${esc(tel_(mv(r, 'NUMERO')))}</div></div>
+      <div><div class="k">Número</div><div class="num mega">${cnMNum_(r, esc(tel_(mv(r, 'NUMERO'))))}</div></div>
       <div style="text-align:right"><div class="k">Meses restantes</div><div class="num mega" style="color:var(--cyan)">${esc(meses)}</div></div>
     </div>
     ${dato_('Cuenta', mv(r, 'CUENTA'), { num:true })}
@@ -2394,7 +2411,7 @@ function trmPintarDetalle_(){
     <div class="k" style="padding:10px 14px 4px">${r.vivas.length} línea(s)${r.nuevas ? ' · ' + r.nuevas + ' nuevas' : ''}${r.renov ? ' · ' + r.renov + ' renovación' : ''}</div>
     ${r.lineas.map(x=>{ const f = x.fila; const v = c=> f ? mv(f, c) : '';
       return `<div class="renglon"><div class="riel" style="${x.cancelada ? 'background:var(--red)' : ''}"></div><div class="cuerpo">
-        <div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="num copiable" data-copiar="${esc(String(v('NUMERO') || x.l.NUMERO).replace(/\D/g, ''))}" style="font-size:21px">${esc(tel_(v('NUMERO') || x.l.NUMERO) === '—' ? (v('NUMERO') || 'Sin número') : tel_(v('NUMERO') || x.l.NUMERO))}</span><span class="k">${esc(x.tr || '')} · FOL ${esc(x.l.FOL)}</span></div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="num copiable" data-copiar="${esc(String(v('NUMERO') || x.l.NUMERO).replace(/\D/g, ''))}" style="font-size:21px">${cnMNum_(f, esc(tel_(v('NUMERO') || x.l.NUMERO) === '—' ? (v('NUMERO') || 'Sin número') : tel_(v('NUMERO') || x.l.NUMERO)))}</span><span class="k">${esc(x.tr || '')} · FOL ${esc(x.l.FOL)}</span></div>
         <div style="font-size:14px">${esc([v('MARCA'), v('MODELO')].filter(Boolean).join(' ') || '—')}</div>
         <div class="num" style="font-size:13px; color:var(--text-faint)">Cta ${esc(v('CUENTA') || '—')} · ${esc(v('PLAN') || '—')}</div>
         <div class="num" style="font-size:13px; color:var(--text-faint)">IMEI ${esc(v('IMEI') || '—')} · ICCID ${esc(v('ICCID') || '—')}</div>
@@ -2874,7 +2891,7 @@ function masPintar_(){
     if(MAS_F.marca === 'iphone' && !/IPHONE|APPLE/.test(mm)) return false;
     if(MAS_F.marca === 'samsung' && !/SAMSUNG/.test(mm)) return false;
     if(MAS_CLI) return mismoClienteTxt_(mv(r, 'CLIENTE'), MAS_CLI);
-    if(n) return String(mv(r, 'NUMERO')).replace(/\D/g, '').includes(n) || String(mv(r, 'CUENTA')).replace(/\D/g, '').includes(n) || (n.length === 15 && String(mv(r, 'IMEI')).includes(n));
+    if(n) return String(mv(r, 'NUMERO')).replace(/\D/g, '').includes(n) || String(mv(r, 'CUENTA')).replace(/\D/g, '').includes(n) || (n.length === 15 && String(mv(r, 'IMEI')).includes(n)) || (n.length >= 7 && cnMAnt_(r).some(a=> a.includes(n)));   // #246
     if(q){ const pal = norm_(mv(r, 'CLIENTE')).split(/[^A-Z0-9Ñ&]+/).filter(Boolean); return norm_(q).split(/\s+/).every(p=> pal.some(w=> w.startsWith(p))); }
     return true;
   });
@@ -2883,7 +2900,7 @@ function masPintar_(){
     const meses = mpr !== '' ? mpr : (/LIBRE/i.test(fin) ? 'L' : (mesesHasta_(fin) ?? '—'));
     const cumplido = String(meses).toUpperCase() === 'L' || (!isNaN(Number(meses)) && Number(meses) <= 3);
     return `<div class="renglon"><div class="riel" style="${cumplido ? 'background:var(--green)' : ''}"></div><div class="cuerpo">
-      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;"><span class="num copiable" data-copiar="${esc(String(mv(r, 'NUMERO')).replace(/\D/g, ''))}" style="font-size:21px">${esc(tel_(mv(r, 'NUMERO')))}</span><span class="num" style="font-size:21px; color:${cumplido ? 'var(--green)' : 'var(--cyan)'}">${esc(meses)}<span class="k" style="font-family:Barlow"> meses</span></span></div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;"><span class="num copiable" data-copiar="${esc(String(mv(r, 'NUMERO')).replace(/\D/g, ''))}" style="font-size:21px">${cnMNum_(r, esc(tel_(mv(r, 'NUMERO'))))}</span><span class="num" style="font-size:21px; color:${cumplido ? 'var(--green)' : 'var(--cyan)'}">${esc(meses)}<span class="k" style="font-family:Barlow"> meses</span></span></div>
       <div style="font-size:13px; color:var(--text-dim)">${esc(mv(r, 'CLIENTE'))} · ${esc(mv(r, 'PLAN') || '—')} · <span class="num">${esc(mon_(mv(r, 'RENTA')))}</span></div>
       <div class="num" style="font-size:13px; color:var(--text-faint)">Cta ${esc(mv(r, 'CUENTA') || '—')} · ${esc(fecha_(mv(r, 'INICIO')))} → ${esc(fecha_(fin))}</div>
     </div></div>`;
